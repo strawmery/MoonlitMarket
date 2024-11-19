@@ -25,19 +25,37 @@ public class UserTest {
     }
 
     @Test
-    void testGettersSetters(){
+    void testId(){
         User user = new User();
         user.setId(1L);
-        user.setUsername("testUser");
-        user.setEmail("testUser@gmail.com");
-        user.setPassword("testPassword");
-        user.setRol("admin");
-
         assertEquals(1L, user.getId());
-        assertEquals("testUser", user.getUsername());
-        assertEquals("testUser@gmail.com", user.getEmail());
-        assertEquals("testPassword", user.getPassword());
-        assertEquals("admin", user.getRol());
     }
 
+    @Test
+    void testUsername(){
+        User user = new User();
+        user.setUsername("testUser");
+        assertEquals("testUser", user.getUsername());
+    }
+
+    @Test
+    void testEmail(){
+        User user = new User();
+        user.setEmail("testUser@gmail.com");
+        assertEquals("testUser@gmail.com", user.getEmail());
+    }
+    
+    @Test
+    void testPassword(){
+        User user = new User();
+        user.setPassword("testPassword");
+        assertEquals("testPassword", user.getPassword());
+    }
+
+    @Test
+    void testRol(){
+        User user = new User();
+        user.setRol("admin");
+        assertEquals("admin", user.getRol());
+    }
 }
