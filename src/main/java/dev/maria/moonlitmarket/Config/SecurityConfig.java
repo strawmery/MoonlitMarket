@@ -27,9 +27,11 @@ public class SecurityConfig {
     @Bean
     SecurityFilterChain securityFilterChain(HttpSecurity http) throws Exception {
         http.authorizeRequests((requests)-> requests
-            .requestMatchers("/api/public/**").permitAll()
+            .requestMatchers("/public/**").permitAll()
+            .requestMatchers("/api/user/**").authenticated()
             .requestMatchers("/api/admin/**").hasRole("ADMIN")
-            .anyRequest().authenticated()
+                                                         .anyRequest()
+                                                         .authenticated()
         )
             .sessionManagement(session -> session.sessionCreationPolicy(SessionCreationPolicy.STATELESS)
         )
