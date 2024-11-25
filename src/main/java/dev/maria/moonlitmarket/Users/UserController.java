@@ -29,21 +29,19 @@ public class UserController {
         this.userService =userService;
     }
 
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
-    @PostMapping(path = "/user/register")
+    @PostMapping(path = "/public/register")
     public ResponseEntity<User> createUser(@RequestBody User user) {
         User createdUser = userService.createUser(user);
         return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
 
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping(path = "/admin/listusers")
     public ResponseEntity<List<User>> listUsers() {
         List<User> users = userService.getUsers();
         return ResponseEntity.ok(users);
     }
 
-    @PreAuthorize("hasRole('ADMIN') or hasRole('USER')")
     @PutMapping("users/update/{id}")
     public ResponseEntity<User> updateUser (@PathVariable Long id, @RequestBody User user) {
         try {
@@ -53,7 +51,7 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
-    @PreAuthorize("hasRole('ADMIN')")
+    @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/admin/delete/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         if (userService.getUserById(id).isPresent()) {
