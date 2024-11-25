@@ -1,18 +1,13 @@
 package dev.maria.moonlitmarket.Users;
 
-import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
-import org.springframework.security.core.authority.SimpleGrantedAuthority;
-import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.security.core.userdetails.UserDetailsService;
-import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
 @Service
-public class UserService implements UserDetailsService{
+public class UserService{
 
     private final UserRepository repository;
     private final PasswordEncoder encoder;
@@ -63,18 +58,4 @@ public class UserService implements UserDetailsService{
             throw new RuntimeException("Usuario no encontrado con userId: " + id);
         }
     }
-
-    @Override
-    public UserDetails loadUserByUsername(String username) throws UsernameNotFoundException {
-        User user = repository.findByUsername(username)
-                .orElseThrow(() -> new UsernameNotFoundException("User not found"));
-
-        return new org.springframework.security.core.userdetails.User(
-                user.getUsername(),
-                user.getPassword(),
-                Collections.singleton(new SimpleGrantedAuthority("ROLE_"+user.getRol()))
-        );
-    }
-
-
 }
