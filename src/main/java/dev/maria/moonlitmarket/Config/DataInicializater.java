@@ -27,6 +27,7 @@ public class DataInicializater implements CommandLineRunner {
                 root.setUsername("root");
                 root.setEmail("admin@gmail.com");
                 root.setPassword(passwordEncoder.encode("passwordAdmin"));
+                root.setRol("ADMIN");
                 userRepository.save(root);
                 System.out.println("usuario root creado en la base de datos");
             }else{

@@ -35,15 +35,26 @@ public class UserService implements UserDetailsService{
         return repository.findById(id);
     }
     
-    public User updateUser(Long id, User details){
+    public User updateUser(Long id, User details) {
         return repository.findById(id).map(user -> {
-            user.setUsername(user.getUsername());
-            user.setPassword(encoder.encode(user.getPassword()));
-            user.setEmail(user.getEmail());
-            user.setRol(user.getRol());
+            user.setUsername(details.getUsername());
+            user.setPassword(encoder.encode(details.getPassword()));
+            user.setEmail(details.getEmail());
+            user.setRol(details.getRol());
             return repository.save(user);
         }).orElseThrow(() -> new RuntimeException("Usuario no encontrado con userId: " + id));
     }
+
+    public User updatePassword(Long id, String password){
+        User user = repository.findById(id).orElse(null);
+        if(user!=null){
+            user.setPassword(password);
+            return repository.save(user);
+        }else{
+            throw new RuntimeException("user not found with the id :"+id);
+        }
+    }
+    
 
     public void deleteUser(Long id){
         if(repository.existsById(id)){
