@@ -9,7 +9,7 @@ import lombok.AllArgsConstructor;
 
 @Service
 @AllArgsConstructor
-public class UserSericeDetailsImpl implements UserDetailsService{
+public class UserServiceDetailsImpl implements UserDetailsService{
 
     private UserRepository repository;
 
