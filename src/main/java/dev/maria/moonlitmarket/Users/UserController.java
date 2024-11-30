@@ -29,12 +29,14 @@ public class UserController {
         this.userService =userService;
     }
 
+    //publico
     @PostMapping(path = "/public/register")
     public ResponseEntity<User> createUser(@RequestBody User user) {
         User createdUser = userService.createUser(user);
         return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
 
+    //admin
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping(path = "/admin/listusers")
     public ResponseEntity<List<User>> listUsers() {
@@ -42,7 +44,8 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
-    @PutMapping("users/update/{id}")
+    //users
+    @PutMapping("/user/update/{id}")
     public ResponseEntity<User> updateUser (@PathVariable Long id, @RequestBody User user) {
         try {
             User updatedUser = userService.updateUser(id, user);
@@ -51,8 +54,10 @@ public class UserController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
         }
     }
+
+    //users
     @PreAuthorize("hasAuthority('ADMIN')")
-    @DeleteMapping("/admin/delete/{id}")
+    @DeleteMapping("/user/delete/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         if (userService.getUserById(id).isPresent()) {
             userService.deleteUser(id);
@@ -62,6 +67,7 @@ public class UserController {
         }
     }
 
+    //users
     @PatchMapping("/user/password/{id}")
     public ResponseEntity<User> updatePassword(@PathVariable Long id, @RequestParam String password){
         try {
