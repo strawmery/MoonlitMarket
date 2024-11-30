@@ -1,5 +1,7 @@
 package dev.maria.moonlitmarket.Products;
 
+import dev.maria.moonlitmarket.Category.CategoryDTO;
+
 public class ProductsDTO {
 
     private Long id;
@@ -12,7 +14,5 @@ public class ProductsDTO {
 
     private String size;
 
-    private Long idCategory;
-
-
+    private CategoryDTO category;
 }
