@@ -177,7 +177,7 @@ public class UserSeviceTest {
             userService.updateUser(1L, new User());
         });
 
-        assertEquals("Usuario no encontrado con userId: 1", exception.getMessage());
+        assertEquals("user not found with the id :1", exception.getMessage());
     }
 
     @Test
