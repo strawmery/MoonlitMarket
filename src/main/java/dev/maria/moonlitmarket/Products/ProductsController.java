@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.PutMapping;
 
 
@@ -62,7 +61,8 @@ public class ProductsController {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
-
+    
+    @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/admin/update/{id}")
     public ResponseEntity<Products> putMethodName(@PathVariable Long id, @RequestBody Products details) {
         try {
