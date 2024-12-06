@@ -30,7 +30,4 @@ public class Category {
 
     @OneToMany
     private List<Products> products;
-
-
-
 }
