@@ -3,16 +3,14 @@ package dev.maria.moonlitmarket.Products;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
 @Service
 public class ProductsService {
 
+    @Autowired
     private ProductsRepository repository;
-
-    public ProductsService (ProductsRepository repository){
-        this.repository = repository;
-    }
 
     //admin
     public Products addProducts (Products products){

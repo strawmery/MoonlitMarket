@@ -3,30 +3,28 @@ package dev.maria.moonlitmarket.Products;
 import java.util.List;
 import java.util.Optional;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 
 
 
 
 @RestController
-@RequestMapping(path = "/products")
+@RequestMapping(path = "/api")
 public class ProductsController {
 
+    @Autowired
     private ProductsService service;
-
-    public ProductsController(ProductsService service){
-        this.service = service;
-    }
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("/admin/addproduct")
@@ -35,13 +33,13 @@ public class ProductsController {
         return new ResponseEntity<>(createdProduct, HttpStatus.CREATED);
     }
 
-    @GetMapping("/public/list")
+    @GetMapping("/public/products/list")
     public ResponseEntity<List<Products>> listProducts() {
         List<Products> products = service.getAllProducts();
         return ResponseEntity.ok(products);
     }
 
-    @GetMapping("/public/listbyid/{id}")
+    @GetMapping("/public/products/listbyid/{id}")
     public ResponseEntity<Optional<Products>> getProductById(@PathVariable Long id) {
         Optional<Products> product = service.getProductById(id);
         if (product != null) {
@@ -52,7 +50,7 @@ public class ProductsController {
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
-    @DeleteMapping("/admin/delete/{id}")
+    @DeleteMapping("/admin/products/delete/{id}")
     public ResponseEntity<Void> deleteProduct(@PathVariable Long id){
         if(service.getProductById(id).isPresent()){
             service.deleteProducts(id);
@@ -63,7 +61,7 @@ public class ProductsController {
     }
     
     @PreAuthorize("hasAuthority('ADMIN')")
-    @PutMapping("/admin/update/{id}")
+    @PutMapping("/admin/products/update/{id}")
     public ResponseEntity<Products> putMethodName(@PathVariable Long id, @RequestBody Products details) {
         try {
             Products updatedProducts = service.updateProduct(id, details);
