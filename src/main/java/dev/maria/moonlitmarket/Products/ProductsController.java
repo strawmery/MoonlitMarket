@@ -62,7 +62,7 @@ public class ProductsController {
     
     @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/admin/products/update/{id}")
-    public ResponseEntity<ProductsDTO> putMethodName(@PathVariable Long id, @RequestBody ProductsDTO details) {
+    public ResponseEntity<ProductsDTO> updateProduct(@PathVariable Long id, @RequestBody ProductsDTO details) {
         try {
             ProductsDTO updatedProducts = service.updateProduct(id, details);
             return ResponseEntity.ok(updatedProducts);
