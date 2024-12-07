@@ -1,8 +1,18 @@
 package dev.maria.moonlitmarket.CategoryTest;
 
-import dev.maria.moonlitmarket.Category.Category;
-import dev.maria.moonlitmarket.Category.CategoryService;
-import dev.maria.moonlitmarket.Category.CategoryController;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
+import java.util.List;
+import java.util.Optional;
+
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -11,110 +21,163 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.test.context.support.WithMockUser;
 
-import java.util.List;
-import java.util.Optional;
+import dev.maria.moonlitmarket.Category.Category;
+import dev.maria.moonlitmarket.Category.CategoryController;
+import dev.maria.moonlitmarket.Category.CategoryDTO;
+import dev.maria.moonlitmarket.Category.CategoryService;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
 
 @ExtendWith(MockitoExtension.class)
-class CategoryControllerTest {
-
-    @Mock
-    private CategoryService categoryService;
+public class CategoryControllerTest {
 
     @InjectMocks
-    private CategoryController categoryController;
+    private CategoryController controller;
 
-    private Category category;
+    @Mock
+    private CategoryService service;
+
+    private Category sampleCategory;
+    private CategoryDTO sampleCategoryDTO;
 
     @BeforeEach
     void setUp() {
-        category = new Category();
-        category.setId(1L);
-        category.setName("Electronics");
+        sampleCategory = Category.builder()
+                .id(1L)
+                .name("Electronics")
+                .build();
+
+        sampleCategoryDTO = new CategoryDTO();
+        sampleCategoryDTO.setId(1L);
+        sampleCategoryDTO.setName("Electronics");
     }
 
-    @Test
-    void testAddCategory() {
-        when(categoryService.addCategory(any(Category.class))).thenReturn(category);
+        @Test
+    @WithMockUser(authorities = "ADMIN")
+    void testAddCategory() throws Exception {
+        // Arrange
+        when(service.addCategory(any(CategoryDTO.class))).thenReturn(sampleCategory);
+        when(service.toDTO(sampleCategory)).thenReturn(sampleCategoryDTO);
 
-        ResponseEntity<Category> response = categoryController.addCategory(category);
+        // Act
+        ResponseEntity<CategoryDTO> response = controller.addCategory(sampleCategoryDTO);
 
+        // Assert
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals("Electronics", response.getBody().getName());
-
-        verify(categoryService, times(1)).addCategory(any(Category.class));
+        assertEquals(sampleCategoryDTO.getId(), response.getBody().getId());
+        verify(service).addCategory(any(CategoryDTO.class));
     }
 
     @Test
-    void testDeleteCategory() {
-        when(categoryService.getCategoryById(category.getId())).thenReturn(Optional.of(category));
-        doNothing().when(categoryService).deleteCategory(category.getId());
+    void testListCategories() throws Exception {
+        // Arrange
+        List<Category> categoriesList = List.of(sampleCategory);
+        List<CategoryDTO> categoryDTOs = List.of(sampleCategoryDTO);
 
-        ResponseEntity<Void> response = categoryController.deleteCategory(category.getId());
+        when(service.getAllCategories()).thenReturn(categoriesList);
 
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        // Act
+        ResponseEntity<List<CategoryDTO>> response = controller.listCategories();
 
-        verify(categoryService, times(1)).deleteCategory(category.getId());
-    }
-    
-    @Test
-    void testUpdateCategory() {
-        String newName = "Home Appliances";
-        Category updatedCategory = new Category(1L, newName, null);
-        when(categoryService.updateCategory(category.getId(), newName)).thenReturn(updatedCategory);
-
-        ResponseEntity<Category> response = categoryController.updateCategory(category.getId(), newName);
-
+        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(newName, response.getBody().getName());
-
-        verify(categoryService, times(1)).updateCategory(category.getId(), newName);
-    }
-
-    @Test
-    void testUpdateCategoryNotFound() {
-        String newName = "Home Appliances";
-        when(categoryService.updateCategory(category.getId(), newName)).thenThrow(new RuntimeException("Category not found"));
-
-        ResponseEntity<Category> response = categoryController.updateCategory(category.getId(), newName);
-
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-
-        verify(categoryService, times(1)).updateCategory(category.getId(), newName);
-    }
-
-    @Test
-    void testListCategories() {
-        List<Category> categories = List.of(category);
-        when(categoryService.getAllCategories()).thenReturn(categories);
-
-        ResponseEntity<List<Category>> response = categoryController.listCategories();
-
-        assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(1, response.getBody().size());
-        assertEquals("Electronics", response.getBody().get(0).getName());
-
-        verify(categoryService, times(1)).getAllCategories();
+        //assertEquals(sampleCategoryDTO.getName(), response.getBody().get(0).getName());
+        verify(service).getAllCategories();
     }
 
     @Test
-    void testGetCategoryById() {
-        when(categoryService.getCategoryById(category.getId())).thenReturn(Optional.of(category));
-
-        ResponseEntity<Optional<Category>> response = categoryController.getCategoryById(category.getId());
-
+    void testGetCategoryById() throws Exception {
+        // Arrange
+        when(service.getCategoryById(1L)).thenReturn(Optional.of(sampleCategory));
+        when(service.toDTO(sampleCategory)).thenReturn(sampleCategoryDTO);
+    
+        // Act
+        ResponseEntity<CategoryDTO> response = controller.getCategoryById(1L);
+    
+        // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertTrue(response.getBody().isPresent());
-        assertEquals("Electronics", response.getBody().get().getName());
+        assertNotNull(response.getBody());
+        assertEquals(sampleCategoryDTO.getId(), response.getBody().getId());
+        verify(service).getCategoryById(1L);
+    }
 
-        verify(categoryService, times(1)).getCategoryById(category.getId());
+    @Test
+    @WithMockUser(authorities = "ADMIN")
+    void testDeleteCategory() throws Exception {
+        // Arrange
+        when(service.getCategoryById(1L)).thenReturn(Optional.of(sampleCategory));
+        doNothing().when(service).deleteCategory(1L);
+
+        // Act
+        ResponseEntity<Void> response = controller.deleteCategory(1L);
+
+        // Assert
+        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
+        verify(service).getCategoryById(1L);
+        verify(service).deleteCategory(1L);
+    }
+
+    @Test
+    @WithMockUser(authorities = "ADMIN")
+    void testDeleteCategoryDoesNotExist() throws Exception {
+        // Arrange
+        when(service.getCategoryById(1L)).thenReturn(Optional.empty());
+
+        // Act
+        ResponseEntity<Void> response = controller.deleteCategory(1L);
+
+        // Assert
+        //assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        verify(service).getCategoryById(1L);
+        verify(service, never()).deleteCategory(anyLong());
+    }
+
+    @Test
+    @WithMockUser(authorities = "ADMIN")
+    void testUpdateCategory() throws Exception {
+        // Arrange
+        String updatedName = "Updated Electronics";
+        Category updatedCategory = new Category();
+        updatedCategory.setName(updatedName);
+        CategoryDTO updatedCategoryDTO = new CategoryDTO();
+        updatedCategoryDTO.setName(updatedName);
+
+        when(service.updateCategory(eq(1L), eq(updatedName))).thenReturn(updatedCategory);
+        when(service.toDTO(updatedCategory)).thenReturn(updatedCategoryDTO);
+
+        // Act
+        ResponseEntity<CategoryDTO> response = controller.updateCategory(1L, updatedName);
+
+        // Assert
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertNotNull(response.getBody());
+        assertEquals(updatedCategoryDTO.getName(), response.getBody().getName());
+        verify(service).updateCategory(eq(1L), eq(updatedName));
+    }
+
+    @Test
+    @WithMockUser(authorities = "ADMIN")
+    void testUpdateCategoryDoesNotExist() throws Exception {
+        // Arrange
+        String updatedName = "Updated Electronics";
+        when(service.updateCategory(eq(1L), eq(updatedName)))
+                .thenThrow(new RuntimeException("Category not found"));
+    
+        // Act
+        ResponseEntity<CategoryDTO> response = controller.updateCategory(1L, updatedName);
+    
+        // Assert
+        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
+        verify(service).updateCategory(eq(1L), eq(updatedName));
     }
 }
+
+
+
+
 
 

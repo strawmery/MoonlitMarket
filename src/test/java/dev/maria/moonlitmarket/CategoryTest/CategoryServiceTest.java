@@ -13,6 +13,7 @@ import org.mockito.Mock;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import dev.maria.moonlitmarket.Category.Category;
+import dev.maria.moonlitmarket.Category.CategoryDTO;
 import dev.maria.moonlitmarket.Category.CategoryRepository;
 import dev.maria.moonlitmarket.Category.CategoryService;
 
@@ -38,13 +39,23 @@ public class CategoryServiceTest {
 
     @Test
     void testAddCategory() {
+        // Arrange
+        CategoryDTO categoryDTO = new CategoryDTO();
+        categoryDTO.setName("Electronics");
+        Category category = new Category();
+        category.setName("Electronics");
+        
         when(categoryRepository.save(any(Category.class))).thenReturn(category);
 
-        Category result = categoryService.addCategory(category);
+        // Act
+        Category result = categoryService.addCategory(categoryDTO);
+
+        // Assert
         assertNotNull(result);
         assertEquals("Electronics", result.getName());
-        verify(categoryRepository, times(1)).save(category);
+        verify(categoryRepository, times(1)).save(any(Category.class)); // Verificamos que save fue llamado con cualquier instancia de Category
     }
+
 
     @Test
     void testDeleteCategory() {
