@@ -19,7 +19,9 @@ import org.mockito.Mock;
 import org.mockito.MockitoAnnotations;
 
 import dev.maria.moonlitmarket.Category.Category;
+import dev.maria.moonlitmarket.Category.CategoryService;
 import dev.maria.moonlitmarket.Products.Products;
+import dev.maria.moonlitmarket.Products.ProductsDTO;
 import dev.maria.moonlitmarket.Products.ProductsRepository;
 import dev.maria.moonlitmarket.Products.ProductsService;
 
@@ -28,6 +30,9 @@ public class ProductsServiceTest {
     @Mock
     private ProductsRepository repository;
 
+    @Mock
+    private CategoryService categoryService;
+
     @InjectMocks
     private ProductsService service;
 
@@ -35,6 +40,7 @@ public class ProductsServiceTest {
     void setUp() {
         MockitoAnnotations.openMocks(this);
     }
+
     @Test
     void testAddProducts() {
         // Arrange
@@ -42,6 +48,13 @@ public class ProductsServiceTest {
                 .id(1L)
                 .name("Electronics")
                 .build();
+
+        ProductsDTO productsDTO = new ProductsDTO();
+        productsDTO.setName("Smartphone");
+        productsDTO.setDescription("Latest model smartphone");
+        productsDTO.setPrice(999.99);
+        productsDTO.setSize("Medium");
+        productsDTO.setCategoryName("Electronics");
 
         Products productToAdd = Products.builder()
                 .name("Smartphone")
@@ -60,10 +73,11 @@ public class ProductsServiceTest {
                 .category(category)
                 .build();
 
+        when(categoryService.findByName("Electronics")).thenReturn(category);
         when(repository.save(productToAdd)).thenReturn(savedProduct);
 
         // Act
-        Products result = service.addProducts(productToAdd);
+        ProductsDTO result = service.addProducts(productsDTO);
 
         // Assert
         verify(repository).save(productToAdd);
@@ -73,7 +87,7 @@ public class ProductsServiceTest {
         assertEquals("Latest model smartphone", result.getDescription());
         assertEquals(999.99, result.getPrice(), 0.001);
         assertEquals("Medium", result.getSize());
-        assertEquals(category, result.getCategory());
+        assertEquals("Electronics", result.getCategoryName());
     }
 
     @Test
@@ -129,7 +143,7 @@ public class ProductsServiceTest {
         when(repository.findAll()).thenReturn(productList);
 
         // Act
-        List<Products> result = service.getAllProducts();
+        List<ProductsDTO> result = service.getAllProducts();
     
         // Assert
         assertNotNull(result);
@@ -141,6 +155,14 @@ public class ProductsServiceTest {
     void testGetProductById() {
             // Arrange
             Long productId = 1L;
+            ProductsDTO productDTO = new ProductsDTO();
+            productDTO.setId(productId);
+            productDTO.setName("Smartphone");
+            productDTO.setDescription("Latest model smartphone");
+            productDTO.setPrice(999.99);
+            productDTO.setSize("Medium");
+            productDTO.setCategoryName("Electronics");
+
             Products product = Products.builder()
                     .id(productId)
                     .name("Smartphone")
@@ -150,35 +172,15 @@ public class ProductsServiceTest {
                     .category(Category.builder().id(1L).name("Electronics").build())
                     .build();
 
-            when(repository.existsById(productId)).thenReturn(true);
             when(repository.findById(productId)).thenReturn(Optional.of(product));
 
             // Act
-            Optional<Products> result = service.getProductById(productId);
+            Optional<ProductsDTO> result = service.getProductById(productId);
 
             // Assert
             assertTrue(result.isPresent());
-            assertEquals(productId, result.get().getId());
-            assertEquals("Smartphone", result.get().getName());
-            verify(repository).existsById(productId);
+            assertEquals(productDTO, result.get());
             verify(repository).findById(productId);
-    }
-
-    @Test
-    void testGetProductByIdDoesNotExist() {
-        // Arrange
-        Long productId = 1L;
-
-        when(repository.existsById(productId)).thenReturn(false);
-
-        // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            service.getProductById(productId);
-        });
-
-        assertEquals("producto no encontrado", exception.getMessage());
-        verify(repository).existsById(productId);
-        verify(repository, never()).findById(productId);
     }
 
     @Test
@@ -195,14 +197,13 @@ public class ProductsServiceTest {
                 .category(Category.builder().id(1L).name("Electronics").build())
                 .build();
     
-        Products updatedDetails = Products.builder()
-                .name("Smartphone")
-                .description("Latest model smartphone")
-                .price(999.99)
-                .size("Large")
-                .category(Category.builder().id(2L).name("Gadgets").build())
-                .build();
-    
+        ProductsDTO updatedDetails = new ProductsDTO();
+        updatedDetails.setName("Smartphone");
+        updatedDetails.setDescription("Latest model smartphone");
+        updatedDetails.setPrice(999.99);
+        updatedDetails.setSize("Large");
+        updatedDetails.setCategoryName("Gadgets");
+
         Products updatedProduct = Products.builder()
                 .id(productId)
                 .name("Smartphone")
@@ -211,19 +212,20 @@ public class ProductsServiceTest {
                 .size("Large")
                 .category(Category.builder().id(2L).name("Gadgets").build())
                 .build();
-    
+
         when(repository.findById(productId)).thenReturn(Optional.of(existingProduct));
+        when(categoryService.findByName("Gadgets")).thenReturn(updatedProduct.getCategory());
         when(repository.save(existingProduct)).thenReturn(updatedProduct);
-    
+
         // Act
-        Products result = service.updateProduct(productId, updatedDetails);
+        ProductsDTO result = service.updateProduct(productId, updatedDetails);
     
         // Assert
         assertNotNull(result);
         assertEquals("Latest model smartphone", result.getDescription());
         assertEquals(999.99, result.getPrice(), 0.001);
         assertEquals("Large", result.getSize());
-        assertEquals(2L, result.getCategory().getId());
+        assertEquals("Gadgets", result.getCategoryName());
         verify(repository).findById(productId);
         verify(repository).save(existingProduct);
     }
@@ -233,13 +235,12 @@ public class ProductsServiceTest {
         // Arrange
         Long productId = 1L;
 
-        Products updatedDetails = Products.builder()
-                .name("Smartphone")
-                .description("Latest model smartphone")
-                .price(999.99)
-                .size("Large")
-                .category(Category.builder().id(2L).name("Gadgets").build())
-                .build();
+        ProductsDTO updatedDetails = new ProductsDTO();
+        updatedDetails.setName("Smartphone");
+        updatedDetails.setDescription("Latest model smartphone");
+        updatedDetails.setPrice(999.99);
+        updatedDetails.setSize("Large");
+        updatedDetails.setCategoryName("Gadgets");
 
         when(repository.findById(productId)).thenReturn(Optional.empty());
 
@@ -253,3 +254,4 @@ public class ProductsServiceTest {
         verify(repository, never()).save(any());
     }
 }
+
