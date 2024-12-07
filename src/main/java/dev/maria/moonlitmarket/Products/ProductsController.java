@@ -28,20 +28,20 @@ public class ProductsController {
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("/admin/addproduct")
-    public ResponseEntity<Products> addProduct(@RequestBody Products product) {
-        Products createdProduct = service.addProducts(product);
+    public ResponseEntity<ProductsDTO> addProduct(@RequestBody ProductsDTO product) {
+        ProductsDTO createdProduct = service.addProducts(product);
         return new ResponseEntity<>(createdProduct, HttpStatus.CREATED);
     }
 
     @GetMapping("/public/products/list")
-    public ResponseEntity<List<Products>> listProducts() {
-        List<Products> products = service.getAllProducts();
+    public ResponseEntity<List<ProductsDTO>> listProducts() {
+        List<ProductsDTO> products = service.getAllProducts();
         return ResponseEntity.ok(products);
     }
 
     @GetMapping("/public/products/listbyid/{id}")
-    public ResponseEntity<Optional<Products>> getProductById(@PathVariable Long id) {
-        Optional<Products> product = service.getProductById(id);
+    public ResponseEntity<Optional<ProductsDTO>> getProductById(@PathVariable Long id) {
+        Optional<ProductsDTO> product = service.getProductById(id);
         if (product != null) {
             return ResponseEntity.ok(product);
         } else {
@@ -62,9 +62,9 @@ public class ProductsController {
     
     @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/admin/products/update/{id}")
-    public ResponseEntity<Products> putMethodName(@PathVariable Long id, @RequestBody Products details) {
+    public ResponseEntity<ProductsDTO> putMethodName(@PathVariable Long id, @RequestBody ProductsDTO details) {
         try {
-            Products updatedProducts = service.updateProduct(id, details);
+            ProductsDTO updatedProducts = service.updateProduct(id, details);
             return ResponseEntity.ok(updatedProducts);
             
         } catch (Exception e) {
