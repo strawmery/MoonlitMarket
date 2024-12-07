@@ -16,6 +16,10 @@ public class CategoryService {
     @Autowired
     private CategoryRepository repository;
 
+    public Category findByName(String name){
+        return repository.findByName(name).orElseThrow(() -> new RuntimeException("Categoria no encontrada"));
+    }
+    
     public Category addCategory(CategoryDTO categoryDTO){
         Category category = new Category();
         category.setName(categoryDTO.getName());
