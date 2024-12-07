@@ -29,9 +29,9 @@ public class CategoryController {
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @PostMapping("/admin/category/addcategory")
-    public ResponseEntity<Category> addCategory(@RequestBody Category category) {
-        Category createdCategory = service.addCategory(category);
-        return new ResponseEntity<>(createdCategory, HttpStatus.CREATED);
+    public ResponseEntity<CategoryDTO> addCategory(@RequestBody CategoryDTO categoryDTO) {
+        Category createdCategory = service.addCategory(categoryDTO);
+        return new ResponseEntity<>(service.toDTO(createdCategory), HttpStatus.CREATED);
     }
 
     @PreAuthorize("hasAuthority('ADMIN')")
@@ -48,28 +48,37 @@ public class CategoryController {
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @PatchMapping("/admin/category/update/{id}")
-    public ResponseEntity<Category> updateCategory(@PathVariable Long id, @RequestParam String name) {
+    public ResponseEntity<CategoryDTO> updateCategory(@PathVariable Long id, @RequestParam String name) {
         try{
             Category updatedCategory = service.updateCategory(id, name);
-            return ResponseEntity.ok(updatedCategory);
+            return ResponseEntity.ok(service.toDTO(updatedCategory));
         }catch(Exception e){
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
 
     @GetMapping("/public/category/listcategories")
-    public ResponseEntity<List<Category>> listCategories(){
-        List<Category> categories = service.getAllCategories();
-        return ResponseEntity.ok(categories);
-    }
+    public ResponseEntity<List<CategoryDTO>> listCategories() {
+        try {
+            List<CategoryDTO> categoryDTOs = service.getAllCategories().stream()
+                    .map(service::toDTO) // Llama al método toDTO del servicio
+                    .toList();
+            return ResponseEntity.ok(categoryDTOs);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
+    }    
 
     @GetMapping("/public/category/listbyid/{id}")
-    public ResponseEntity<Optional<Category>> getCategoryById(@PathVariable Long id) {
+    public ResponseEntity<CategoryDTO> getCategoryById(@PathVariable Long id) {
         Optional<Category> category = service.getCategoryById(id);
-        if (category != null) {
-            return ResponseEntity.ok(category);
+    
+        if (category.isPresent()) {
+            // Convierte la categoría a DTO usando el método del servicio
+            CategoryDTO categoryDTO = service.toDTO(category.get());
+            return ResponseEntity.ok(categoryDTO);
         } else {
-            return ResponseEntity.notFound().build();
+            return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
-    }
+    }    
 }
