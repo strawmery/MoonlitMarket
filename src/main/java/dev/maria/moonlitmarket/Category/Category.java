@@ -3,6 +3,7 @@ package dev.maria.moonlitmarket.Category;
 import java.util.List;
 
 import dev.maria.moonlitmarket.Products.Products;
+import jakarta.persistence.CascadeType;
 import jakarta.persistence.Entity;
 import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
@@ -28,9 +29,6 @@ public class Category {
 
     private String name;
 
-    @OneToMany
+    @OneToMany(mappedBy = "category", cascade = CascadeType.ALL)
     private List<Products> products;
-
-
-
 }

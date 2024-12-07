@@ -27,6 +27,7 @@ import org.springframework.security.test.context.support.WithMockUser;
 import dev.maria.moonlitmarket.Category.Category;
 import dev.maria.moonlitmarket.Products.Products;
 import dev.maria.moonlitmarket.Products.ProductsController;
+import dev.maria.moonlitmarket.Products.ProductsDTO;
 import dev.maria.moonlitmarket.Products.ProductsService;
 
 @ExtendWith(MockitoExtension.class)
@@ -38,7 +39,7 @@ public class ProductsControllerTest {
     @Mock
     private ProductsService service;
 
-    private Products sampleProduct;
+    private ProductsDTO sampleProductDTO;
     private Category sampleCategory;
 
     @BeforeEach
@@ -48,13 +49,13 @@ public class ProductsControllerTest {
                 .name("Electronics")
                 .build();
 
-        sampleProduct = Products.builder()
+        sampleProductDTO = ProductsDTO.builder()
                 .id(1L)
                 .name("Smartphone")
                 .description("Latest model smartphone")
                 .price(999.99)
                 .size("Medium")
-                .category(sampleCategory)
+                .categoryName(sampleCategory.getName())  // Usamos el nombre de la categoría en el DTO
                 .build();
     }
 
@@ -62,26 +63,26 @@ public class ProductsControllerTest {
     @WithMockUser(authorities = "ADMIN")
     void testAddProduct() {
         // Arrange
-        when(service.addProducts(any(Products.class))).thenReturn(sampleProduct);
+        when(service.addProducts(any(ProductsDTO.class))).thenReturn(sampleProductDTO);
 
         // Act
-        ResponseEntity<Products> response = controller.addProduct(sampleProduct);
+        ResponseEntity<ProductsDTO> response = controller.addProduct(sampleProductDTO);
 
         // Assert
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertNotNull(response.getBody());
-        assertEquals(sampleProduct.getId(), response.getBody().getId());
-        verify(service).addProducts(any(Products.class));
+        assertEquals(sampleProductDTO.getId(), response.getBody().getId());
+        verify(service).addProducts(any(ProductsDTO.class));
     }
 
     @Test
     void testListProducts() {
         // Arrange
-        List<Products> productsList = List.of(sampleProduct);
+        List<ProductsDTO> productsList = List.of(sampleProductDTO);
         when(service.getAllProducts()).thenReturn(productsList);
     
         // Act
-        ResponseEntity<List<Products>> response = controller.listProducts();
+        ResponseEntity<List<ProductsDTO>> response = controller.listProducts();
     
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
@@ -93,16 +94,16 @@ public class ProductsControllerTest {
     @Test
     void testGetProductById() {
         // Arrange
-        when(service.getProductById(1L)).thenReturn(Optional.of(sampleProduct));
+        when(service.getProductById(1L)).thenReturn(Optional.of(sampleProductDTO));
 
         // Act
-        ResponseEntity<Optional<Products>> response = controller.getProductById(1L);
+        ResponseEntity<Optional<ProductsDTO>> response = controller.getProductById(1L);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertTrue(response.getBody().isPresent());
-        assertEquals(sampleProduct.getId(), response.getBody().get().getId());
+        assertEquals(sampleProductDTO.getId(), response.getBody().get().getId());
         verify(service).getProductById(1L);
     }
 
@@ -110,7 +111,7 @@ public class ProductsControllerTest {
     @WithMockUser(authorities = "ADMIN")
     void testDeleteProduct() {
         // Arrange
-        when(service.getProductById(1L)).thenReturn(Optional.of(sampleProduct));
+        when(service.getProductById(1L)).thenReturn(Optional.of(sampleProductDTO));
         doNothing().when(service).deleteProducts(1L);
 
         // Act
@@ -141,45 +142,46 @@ public class ProductsControllerTest {
     @WithMockUser(authorities = "ADMIN")
     void testUpdateProduct() {
         // Arrange
-        Products updatedDetails = Products.builder()
+        ProductsDTO updatedDetails = ProductsDTO.builder()
                 .name("Updated Smartphone")
                 .description("Updated description")
                 .price(1099.99)
                 .size("Large")
-                .category(sampleCategory)
+                .categoryName(sampleCategory.getName())  // Usamos el nombre de la categoría en el DTO
                 .build();
 
-        when(service.updateProduct(eq(1L), any(Products.class))).thenReturn(updatedDetails);
+        when(service.updateProduct(eq(1L), any(ProductsDTO.class))).thenReturn(updatedDetails);
 
         // Act
-        ResponseEntity<Products> response = controller.putMethodName(1L, updatedDetails);
+        ResponseEntity<ProductsDTO> response = controller.updateProduct(1L, updatedDetails);
 
         // Assert
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
         assertEquals("Updated Smartphone", response.getBody().getName());
-        verify(service).updateProduct(eq(1L), any(Products.class));
+        verify(service).updateProduct(eq(1L), any(ProductsDTO.class));
     }
 
     @Test
     @WithMockUser(authorities = "ADMIN")
     void testUpdateProductDoesNotExist() {
         // Arrange
-        Products updatedDetails = Products.builder()
+        ProductsDTO updatedDetails = ProductsDTO.builder()
                 .name("Updated Smartphone")
                 .description("Updated description")
                 .price(1099.99)
                 .size("Large")
-                .category(sampleCategory)
+                .categoryName(sampleCategory.getName())  // Usamos el nombre de la categoría en el DTO
                 .build();
 
-        when(service.updateProduct(eq(1L), any(Products.class))).thenThrow(new RuntimeException("Producto no encontrado"));
+        when(service.updateProduct(eq(1L), any(ProductsDTO.class))).thenThrow(new RuntimeException("Producto no encontrado"));
 
         // Act
-        ResponseEntity<Products> response = controller.putMethodName(1L, updatedDetails);
+        ResponseEntity<ProductsDTO> response = controller.updateProduct(1L, updatedDetails);
 
         // Assert
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(service).updateProduct(eq(1L), any(Products.class));
+        verify(service).updateProduct(eq(1L), any(ProductsDTO.class));
     }
 }
+
