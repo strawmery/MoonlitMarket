@@ -31,24 +31,24 @@ public class UserController {
 
     //publico
     @PostMapping(path = "/public/register")
-    public ResponseEntity<User> createUser(@RequestBody User user) {
-        User createdUser = userService.createUser(user);
+    public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO) {
+        UserDTO createdUser = userService.createUser(userDTO);
         return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
 
     //admin
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping(path = "/admin/listusers")
-    public ResponseEntity<List<User>> listUsers() {
-        List<User> users = userService.getUsers();
+    public ResponseEntity<List<UserDTO>> listUsers() {
+        List<UserDTO> users = userService.getUsers();
         return ResponseEntity.ok(users);
     }
 
     //users
     @PutMapping("/user/update/{id}")
-    public ResponseEntity<User> updateUser (@PathVariable Long id, @RequestBody User user) {
+    public ResponseEntity<UserDTO> updateUser (@PathVariable Long id, @RequestBody UserDTO user) {
         try {
-            User updatedUser = userService.updateUser(id, user);
+            UserDTO updatedUser = userService.updateUser(id, user);
             return ResponseEntity.ok(updatedUser);
         } catch (RuntimeException e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
@@ -68,9 +68,9 @@ public class UserController {
 
     //users
     @PatchMapping("/user/password/{id}")
-    public ResponseEntity<User> updatePassword(@PathVariable Long id, @RequestParam String password){
+    public ResponseEntity<UserDTO> updatePassword(@PathVariable Long id, @RequestParam String password){
         try {
-           User updatedPassword = userService.updatePassword(id, password);
+           UserDTO updatedPassword = userService.updatePassword(id, password);
            return ResponseEntity.ok(updatedPassword); 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
