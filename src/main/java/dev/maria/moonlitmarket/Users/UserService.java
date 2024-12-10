@@ -11,14 +11,11 @@ import java.util.stream.Collectors;
 @Service
 public class UserService {
 
-    private final UserRepository repository;
-    private final PasswordEncoder encoder;
+    @Autowired
+    UserRepository repository;
 
     @Autowired
-    public UserService(UserRepository repository, PasswordEncoder encoder) {
-        this.repository = repository;
-        this.encoder = encoder;
-    }
+    PasswordEncoder encoder;
 
     public UserDTO createUser(UserDTO userDTO) {
         User user = new User();
@@ -70,6 +67,20 @@ public class UserService {
             throw new RuntimeException("User not found with userId: " + id);
         }
         repository.deleteById(id);
+    }
+
+    public String login(String username, String password) {
+        User user = repository.findByUsername(username);
+
+        if(user == null){
+            throw new RuntimeException("User not found");
+        }
+
+        if(!encoder.matches(password, user.getPassword())){
+            throw new RuntimeException("Invalid password");
+        }
+
+        return "Login successful";
     }
 
     private UserDTO toDTO(User user) {
