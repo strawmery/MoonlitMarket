@@ -2,7 +2,7 @@ package dev.maria.moonlitmarket.Users;
 
 import java.util.List;
 
-import dev.maria.moonlitmarket.Whislist.Whislist;
+import dev.maria.moonlitmarket.Wishlist.Wishlist;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Data;
@@ -19,5 +19,5 @@ public class UserDTO {
     private String email;
     private String password;
     private String rol;
-    private List<Whislist> whislists;
+    private List<Wishlist> Wishlists;
 }
