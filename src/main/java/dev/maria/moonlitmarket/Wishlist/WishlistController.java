@@ -39,7 +39,7 @@ public class WishlistController {
     }
 
 
-    @GetMapping("/user/wishlist/list/{id}")
+    @GetMapping("/user/wishlist/list/")
     public ResponseEntity<List<WishlistDTO>> getWishlist(@RequestParam Long id) {
         try {
             List<WishlistDTO> wishlist = wishlistService.getWishlist(id);
