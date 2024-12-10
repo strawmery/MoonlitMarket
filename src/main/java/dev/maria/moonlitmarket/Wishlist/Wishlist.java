@@ -1,4 +1,4 @@
-package dev.maria.moonlitmarket.Whislist;
+package dev.maria.moonlitmarket.Wishlist;
 
 import dev.maria.moonlitmarket.Products.Products;
 import dev.maria.moonlitmarket.Users.User;
@@ -20,8 +20,8 @@ import lombok.NoArgsConstructor;
 @Builder
 @NoArgsConstructor
 @AllArgsConstructor
-@Table(name = "whislist")
-public class Whislist {
+@Table(name = "Wishlist")
+public class Wishlist {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;

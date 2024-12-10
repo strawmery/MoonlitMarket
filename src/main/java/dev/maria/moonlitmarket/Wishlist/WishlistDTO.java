@@ -1,4 +1,4 @@
-package dev.maria.moonlitmarket.Whislist;
+package dev.maria.moonlitmarket.Wishlist;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -9,7 +9,7 @@ import lombok.NoArgsConstructor;
 @Builder
 @AllArgsConstructor
 @NoArgsConstructor
-public class WhislistDTO {
+public class WishlistDTO {
     private Long id;
     private Long userId;
     private Long productId;
