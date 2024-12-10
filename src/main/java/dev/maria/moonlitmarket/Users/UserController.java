@@ -2,6 +2,7 @@ package dev.maria.moonlitmarket.Users;
 
 import java.util.List;
 
+import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -23,11 +24,8 @@ import org.springframework.web.bind.annotation.RestController;
 @RequestMapping(path = "/api")
 public class UserController {
 
+    @Autowired
     private UserService userService;
-
-    public UserController(UserService userService){
-        this.userService =userService;
-    }
 
     //publico
     @PostMapping(path = "/public/register")
@@ -74,6 +72,17 @@ public class UserController {
            return ResponseEntity.ok(updatedPassword); 
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).body(null);
+        }
+    }
+
+    //public 
+    @PostMapping("/public/login")
+    public ResponseEntity<String> login(@RequestParam String username, @RequestParam String password) {
+        try {
+            String login = userService.login(username, password);
+            return ResponseEntity.ok(login);
+        } catch (Exception e) {
+            return ResponseEntity.status(HttpStatus.UNAUTHORIZED).body(null);
         }
     }
     
