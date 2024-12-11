@@ -4,7 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import jakarta.persistence.CascadeType;
-
+import jakarta.persistence.Column;
 import dev.maria.moonlitmarket.Products.Products;
 import dev.maria.moonlitmarket.Users.User;
 import jakarta.persistence.Entity;
@@ -39,8 +39,11 @@ public class Orders {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<Products> products;
 
+    //TODO: cambiar a enum
+    @Column(nullable = false)
     private String status;
 
+    @Column(nullable = false)
     private LocalDateTime orderDate;
 
 }

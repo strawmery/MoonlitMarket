@@ -15,13 +15,13 @@ import org.springframework.web.bind.annotation.RestController;
 import dev.maria.moonlitmarket.Products.Products;
 
 @RestController
-@RequestMapping("/api/user/orders")
+@RequestMapping("/api")
 public class OrdersController {
 
     @Autowired
     private OrdersService service;
 
-    @PostMapping("/create")
+    @PostMapping("/user/orders/create")
     public ResponseEntity<Orders> createOrder(@RequestParam Long userId, @RequestBody List<Products> products) {
         try{
             Orders order = service.createOrder(userId, products);
@@ -31,7 +31,7 @@ public class OrdersController {
         }
     }
 
-    @PatchMapping("/update/{orderId}")
+    @PatchMapping("/user/orders/update/{orderId}")
     public ResponseEntity<Orders> updateOrderStatus(@PathVariable Long orderId, @RequestParam String status){
         try{
             Orders order = service.updateOrderStatus(orderId, status);

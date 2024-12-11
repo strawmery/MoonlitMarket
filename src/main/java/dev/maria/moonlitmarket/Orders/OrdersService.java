@@ -4,11 +4,13 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.stereotype.Service;
 
 import dev.maria.moonlitmarket.Products.Products;
 import dev.maria.moonlitmarket.Users.User;
 import dev.maria.moonlitmarket.Users.UserRepository;
 
+@Service
 public class OrdersService {
 
     @Autowired
