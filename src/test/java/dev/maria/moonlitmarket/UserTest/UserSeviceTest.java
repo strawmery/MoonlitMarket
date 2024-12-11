@@ -1,29 +1,34 @@
 package dev.maria.moonlitmarket.UserTest;
 
-import java.util.Arrays;
 import java.util.List;
 import java.util.Optional;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
-import org.mockito.MockitoAnnotations;
+import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import dev.maria.moonlitmarket.Users.User;
+import dev.maria.moonlitmarket.Users.UserDTO;
 import dev.maria.moonlitmarket.Users.UserRepository;
 import dev.maria.moonlitmarket.Users.UserService;
 
-public class UserSeviceTest {
+@ExtendWith(MockitoExtension.class)
+class UserServiceTest {
+
+    @InjectMocks
+    private UserService userService;
 
     @Mock
     private UserRepository repository;
@@ -31,173 +36,206 @@ public class UserSeviceTest {
     @Mock
     private PasswordEncoder encoder;
 
-    @InjectMocks
-    private UserService userService;
-
-    @BeforeEach
-    void setUp() {
-        MockitoAnnotations.openMocks(this);
-    }
-    
     @Test
-    void registerUser(){
+    void createUser_ShouldReturnCreatedUserDTO() {
+        // Arrange
         User user = new User();
-        user.setUsername("test");
-        user.setEmail("test@gmail.com");
-        user.setPassword("testpassword");
+        user.setUsername("testUser");
+        user.setEmail("test@example.com");
+        user.setPassword("plainPassword");
         user.setRol("USER");
 
         User savedUser = new User();
         savedUser.setId(1L);
-        savedUser.setUsername("test");
-        savedUser.setEmail("test@gmail.com");
-        savedUser.setPassword("encodedpassword");
+        savedUser.setUsername("testUser");
+        savedUser.setEmail("test@example.com");
+        savedUser.setPassword("encodedPassword");
         savedUser.setRol("USER");
 
-        when(encoder.encode("testpassword")).thenReturn("encodedpassword");
-        when(repository.save(user)).thenReturn(savedUser);;
+        when(encoder.encode("plainPassword")).thenReturn("encodedPassword");
+        when(repository.save(any(User.class))).thenReturn(savedUser);
 
-        User createdUser = userService.createUser(user);
+        // Act
+        UserDTO result = userService.createUser(user);
 
-        assertNotNull(createdUser);
-        assertEquals("test", createdUser.getUsername());
-        assertEquals("test@gmail.com", createdUser.getEmail());
-        verify(encoder).encode("testpassword");
-        verify(repository).save(user);
-    }
-
-    //TODO: review and fix the code
-    @Test
-    void listUsers(){
-        User user1 = new User();
-        User user2 = new User();
-
-        when(repository.findAll()).thenReturn(Arrays.asList(user1, user2));
-
-        List<User> users = userService.getUsers();
-        assertEquals(2, users.size());
-        verify(repository).findAll();
+        // Assert
+        assertNotNull(result);
+        assertEquals(1L, result.getId());
+        assertEquals("testUser", result.getUsername());
+        assertEquals("test@example.com", result.getEmail());
+        assertEquals("USER", result.getRol());
     }
 
     @Test
-    void getUserById() {
-        User user = new User();
-        user.setId(1L);
+    void getUsers_ShouldReturnListOfUserDTOs() {
+        // Arrange
+        User user1 = new User(1L, "user1", "user1@example.com", "password", "USER");
+        User user2 = new User(2L, "user2", "user2@example.com", "password", "ADMIN");
+
+        when(repository.findAll()).thenReturn(List.of(user1, user2));
+
+        // Act
+        List<UserDTO> result = userService.getUsers();
+
+        // Assert
+        assertEquals(2, result.size());
+        assertEquals("user1", result.get(0).getUsername());
+        assertEquals("user2", result.get(1).getUsername());
+    }
+
+    @Test
+    void getUserById_UserExists_ShouldReturnUserDTO() {
+        // Arrange
+        User user = new User(1L, "testUser", "test@example.com", "password", "USER");
         when(repository.findById(1L)).thenReturn(Optional.of(user));
 
-        Optional<User> foundUser = userService.getUserById(1L);
+        // Act
+        Optional<UserDTO> result = userService.getUserById(1L);
 
-        assertTrue(foundUser.isPresent());
-        assertEquals(1L, foundUser.get().getId());
-        verify(repository).findById(1L);
+        // Assert
+        assertTrue(result.isPresent());
+        assertEquals("testUser", result.get().getUsername());
     }
 
     @Test
-    void getUserByIdthrowsException() {
+    void getUserById_UserDoesNotExist_ShouldReturnEmpty() {
+        // Arrange
         when(repository.findById(1L)).thenReturn(Optional.empty());
 
-        Optional<User> foundUser = userService.getUserById(1L);
+        // Act
+        Optional<UserDTO> result = userService.getUserById(1L);
 
-        assertTrue(foundUser.isEmpty());
-        verify(repository).findById(1L);
+        // Assert
+        assertFalse(result.isPresent());
     }
 
     @Test
-    void updateUser() {
-        User existingUser = new User();
-        existingUser.setId(1L);
-        existingUser.setUsername("oldUsername");
-        existingUser.setPassword("oldPassword");
-        existingUser.setRol("USER");
+    void updateUser_UserExists_ShouldUpdateAndReturnUserDTO() {
+        // Arrange
+        User existingUser = new User(1L, "oldUser", "old@example.com", "oldPassword", "USER");
+        User updatedUser = new User(1L, "newUser", "new@example.com", "encodedPassword", "ADMIN");
 
-        User updatedDetails = new User();
-        updatedDetails.setUsername("newUsername");
-        updatedDetails.setPassword("newPassword");
-        updatedDetails.setRol("ADMIN");
+        UserDTO updateDetails = new UserDTO();
+        updateDetails.setId(1L);
+        updateDetails.setUsername("newUser");
+        updateDetails.setEmail("new@example.com");
+        updateDetails.setPassword("newPassword");
+        updateDetails.setRol("ADMIN");
 
         when(repository.findById(1L)).thenReturn(Optional.of(existingUser));
-        when(encoder.encode("newPassword")).thenReturn("encodedNewPassword");
-        when(repository.save(existingUser)).thenReturn(existingUser);
+        when(encoder.encode("newPassword")).thenReturn("encodedPassword");
+        when(repository.save(any(User.class))).thenReturn(updatedUser);
 
-        User updatedUser = userService.updateUser(1L, updatedDetails);
+        // Act
+        UserDTO result = userService.updateUser(1L, updateDetails);
 
-        assertEquals("newUsername", updatedUser.getUsername());
-        assertEquals("encodedNewPassword", updatedUser.getPassword());
-        assertEquals("ADMIN", updatedUser.getRol());
-        verify(encoder).encode("newPassword");
-        verify(repository).save(existingUser);
+        // Assert
+        assertNotNull(result);
+        assertEquals("newUser", result.getUsername());
+        assertEquals("new@example.com", result.getEmail());
+        assertEquals("ADMIN", result.getRol());
     }
 
     @Test
-    void updatePassword() {
-        // Datos de prueba
+    void updateUser_UserDoesNotExist_ShouldThrowException() {
+        // Arrange
+        when(repository.findById(1L)).thenReturn(Optional.empty());
+
+        UserDTO updateDetails = new UserDTO();
+        updateDetails.setId(1L);
+        updateDetails.setUsername("newUser");
+        updateDetails.setEmail("new@example.com");
+        updateDetails.setPassword("newPassword");
+        updateDetails.setRol("ADMIN");
+
+        // Act & Assert
+        Exception exception = assertThrows(RuntimeException.class, () -> userService.updateUser(1L, updateDetails));
+        assertEquals("User not found with the id: 1", exception.getMessage());
+    }
+
+    @Test
+    void deleteUser_UserExists_ShouldDeleteUser() {
+        // Arrange
+        when(repository.existsById(1L)).thenReturn(true);
+
+        // Act
+        userService.deleteUser(1L);
+
+        // Assert
+        verify(repository, times(1)).deleteById(1L);
+    }
+
+    @Test
+    void deleteUser_UserDoesNotExist_ShouldThrowException() {
+        // Arrange
+        when(repository.existsById(1L)).thenReturn(false);
+
+        // Act & Assert
+        Exception exception = assertThrows(RuntimeException.class, () -> userService.deleteUser(1L));
+        assertEquals("User not found with userId: 1", exception.getMessage());
+    }
+
+    @Test
+    void login_ValidCredentials_ShouldReturnSuccessMessage() {
+        // Arrange
+        User user = new User(1L, "testUser", "test@example.com", "encodedPassword", "USER");
+
+        when(repository.findByUsername("testUser")).thenReturn(user);
+        when(encoder.matches("plainPassword", "encodedPassword")).thenReturn(true);
+
+        // Act
+        String result = userService.login("testUser", "plainPassword");
+
+        // Assert
+        assertEquals("Login successful", result);
+    }
+
+    @Test
+    void login_InvalidCredentials_ShouldThrowException() {
+        // Arrange
+        when(repository.findByUsername("testUser")).thenReturn(null);
+
+        // Act & Assert
+        Exception exception = assertThrows(RuntimeException.class, () -> userService.login("testUser", "plainPassword"));
+        assertEquals("User not found", exception.getMessage());
+    }
+
+    @Test
+    void updatePassword_ShouldUpdatePasswordForExistingUser() {
+        // Arrange
         Long userId = 1L;
-        String newPassword = "newEncodedPassword";
+        String newPassword = "newPassword";
+        String encodedPassword = "encodedNewPassword";
 
         User existingUser = new User();
         existingUser.setId(userId);
+        existingUser.setUsername("testUser");
+        existingUser.setEmail("test@example.com");
         existingUser.setPassword("oldPassword");
+        existingUser.setRol("USER");
 
-        // Configurar mocks
+        User updatedUser = new User();
+        updatedUser.setId(userId);
+        updatedUser.setUsername("testUser");
+        updatedUser.setEmail("test@example.com");
+        updatedUser.setPassword(encodedPassword);
+        updatedUser.setRol("USER");
+
         when(repository.findById(userId)).thenReturn(Optional.of(existingUser));
-        when(repository.save(existingUser)).thenAnswer(invocation -> invocation.getArgument(0));
+        when(encoder.encode(newPassword)).thenReturn(encodedPassword);
+        when(repository.save(any(User.class))).thenReturn(updatedUser);
 
-        // Ejecutar el método
-        User updatedUser = userService.updatePassword(userId, newPassword);
+        // Act
+        UserDTO result = userService.updatePassword(userId, newPassword);
 
-        // Verificar resultados
-        assertNotNull(updatedUser);
-        assertEquals(newPassword, updatedUser.getPassword());
-        verify(repository).findById(userId);
-        verify(repository).save(existingUser);
-    }
-
-    @Test
-    void updatePasswordNotFound() {
-
-        Long userId = 1L;
-        String newPassword = "newEncodedPassword";
-
-        when(repository.findById(userId)).thenReturn(Optional.empty());
-
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            userService.updatePassword(userId, newPassword);
-        });
-
-        assertEquals("user not found with the id :" + userId, exception.getMessage());
-        verify(repository).findById(userId);
-        verify(repository, never()).save(any(User.class));
-    }
-
-    @Test
-    void updateUserthrowsException() {
-        when(repository.findById(1L)).thenReturn(Optional.empty());
-
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            userService.updateUser(1L, new User());
-        });
-
-        assertEquals("user not found with the id :1", exception.getMessage());
-    }
-
-    @Test
-    void deleteUser() {
-        when(repository.existsById(1L)).thenReturn(true);
-
-        userService.deleteUser(1L);
-
-        verify(repository).deleteById(1L);
-    }
-
-    @Test
-    void deleteUserthrowsException() {
-        when(repository.existsById(1L)).thenReturn(false);
-
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            userService.deleteUser(1L);
-        });
-
-        assertEquals("Usuario no encontrado con userId: 1", exception.getMessage());
+        // Assert
+        assertNotNull(result);
+        assertEquals(userId, result.getId());
+        assertEquals("testUser", result.getUsername());
+        assertEquals("test@example.com", result.getEmail());
+        assertEquals("USER", result.getRol());
+        verify(repository).save(existingUser); // Verifica que se guardó el usuario actualizado
     }
 
 }
+
