@@ -7,6 +7,7 @@ import org.springframework.stereotype.Service;
 
 import dev.maria.moonlitmarket.Orders.Orders;
 import dev.maria.moonlitmarket.Orders.OrdersRepository;
+import jakarta.transaction.Transactional;
 
 @Service
 public class InvoiceService {
@@ -17,6 +18,7 @@ public class InvoiceService {
     @Autowired
     private OrdersRepository ordersRepository;
 
+    @Transactional
     public Invoice createInvoice(Long orderId) {
         Orders order = ordersRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found with the id: " + orderId));
 
