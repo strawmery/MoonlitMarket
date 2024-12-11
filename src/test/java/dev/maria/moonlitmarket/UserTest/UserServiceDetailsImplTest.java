@@ -33,7 +33,13 @@ public class UserServiceDetailsImplTest {
     @Test
     void loadUserByUsername() {
 
-        User user = new User(1L, "testuser", "testuser@gmail.com", "password123", "USER");
+        User user = new User();
+        user.setUsername("testuser");
+        user.setPassword("password123");
+        user.setEmail("test@example.com");
+        user.setRol("USER");
+        user.setAddress("testAddress");
+        user.setPhoneNumber("1234567890");
         when(repository.findByUsername("testuser")).thenReturn(user);
 
         UserDetails userDetails = userDetailsService.loadUserByUsername("testuser");
