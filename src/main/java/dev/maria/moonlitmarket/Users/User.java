@@ -38,6 +38,7 @@ public class User {
     @Column(nullable = false)
     private String password;
 
+    //TODO: cambiar rol a enum
     @Column(nullable = false)
     private String rol;
 
