@@ -19,5 +19,7 @@ public class UserDTO {
     private String email;
     private String password;
     private String rol;
+    private String address;
+    private String phoneNumber;
     private List<Wishlist> Wishlists;
 }

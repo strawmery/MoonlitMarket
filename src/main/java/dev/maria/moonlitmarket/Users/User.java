@@ -34,4 +34,10 @@ public class User {
 
     @Column(nullable = false)
     private String rol;
+
+    @Column(nullable = false)
+    private String address;
+
+    @Column(nullable = false)
+    private String phoneNumber;
 }
