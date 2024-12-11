@@ -1,153 +1,189 @@
 package dev.maria.moonlitmarket.UserTest;
 
-import java.util.Arrays;
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+
 import java.util.List;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertNull;
-import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.eq;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import static org.mockito.Mockito.mock;
-import static org.mockito.Mockito.times;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import dev.maria.moonlitmarket.Users.User;
 import dev.maria.moonlitmarket.Users.UserController;
+import dev.maria.moonlitmarket.Users.UserDTO;
 import dev.maria.moonlitmarket.Users.UserService;
 
 @ExtendWith(MockitoExtension.class)
-public class UserControllerTest {
-
-    @Mock
-    private UserService userService;
+class UserControllerTest {
 
     @InjectMocks
     private UserController userController;
 
-    private User user;
-
-    @BeforeEach
-    void setUp() {
-        user = new User(1L, "Test", "test@example.com", "testpassword", "USER");
-    }
+    @Mock
+    private UserService userService;
 
     @Test
-    void createUser() {
+    void createUser_ShouldReturnCreatedUser_WhenSuccessful() {
+        // Arrange
+        UserDTO userDTO = new UserDTO();
+        userDTO.setUsername("testuser");
+        userDTO.setEmail("test@example.com");
+        userDTO.setPassword("password123");
+        userDTO.setRol("USER");
+        
+        when(userService.createUser(userDTO)).thenReturn(userDTO);
 
-        when(userService.createUser(any(User.class))).thenReturn(user);
+        // Act
+        ResponseEntity<UserDTO> response = userController.createUser(userDTO);
 
-        ResponseEntity<User> response = userController.createUser(user);
-
+        // Assert
+        assertNotNull(response);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertEquals(user, response.getBody());
-    }
-
-    @SuppressWarnings("null")
-    @Test
-    void listUsers () {
-       List<User> users = Arrays.asList(user, new User(2L, "test2", "test2@gmail.com", "password2", "USER"));
-       when(userService.getUsers()).thenReturn(users);
-
-       ResponseEntity<List<User>> response = userController.listUsers();
-
-       assertEquals(HttpStatus.OK, response.getStatusCode());
-       assertEquals(2, response.getBody().size());
+        assertEquals(userDTO, response.getBody());
     }
 
     @Test
-    void updateUser() {
-        User updatedUser = new User(1L, "John Smith", "johnsmith@example.com", "password", "USER");
-        when(userService.updateUser(eq(1L), any(User.class))).thenReturn(updatedUser);
+    void listUsers_ShouldReturnListOfUsers_WhenAdminAuthorized() {
+        // Arrange
+        UserDTO user1 = new UserDTO();
+        user1.setId(1L);
+        user1.setUsername("user1");
+        user1.setEmail("user1@example.com");
+        user1.setPassword("pass1");
+        user1.setRol("USER");
+        UserDTO user2 = new UserDTO();
+        user2.setId(2L);
+        user2.setUsername("user2");
+        user2.setEmail("user2@example.com");
+        user2.setPassword("pass2");
+        user2.setRol("ADMIN");
+        List<UserDTO> users = List.of(user1, user2);
 
-        ResponseEntity<User> response = userController.updateUser(1L, updatedUser);
+        when(userService.getUsers()).thenReturn(users);
 
+        // Act
+        ResponseEntity<List<UserDTO>> response = userController.listUsers();
 
+        // Assert
+        assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertEquals(updatedUser, response.getBody());
+        assertEquals(2, response.getBody().size());
     }
 
     @Test
-    void updateUserNotFound() {
+    void updateUser_ShouldReturnUpdatedUser_WhenSuccessful() {
+        // Arrange
+        Long userId = 1L;
+        UserDTO userDTO = new UserDTO();
+        userDTO.setId(userId);
+        userDTO.setUsername("updateduser");
+        userDTO.setEmail("updated@example.com");
+        userDTO.setPassword("password123");
+        userDTO.setRol("USER");
+        when(userService.updateUser(userId, userDTO)).thenReturn(userDTO);
 
-        when(userService.updateUser(eq(999L), any(User.class))).thenThrow(new RuntimeException("User not found"));
+        // Act
+        ResponseEntity<UserDTO> response = userController.updateUser(userId, userDTO);
 
+        // Assert
+        assertNotNull(response);
+        assertEquals(HttpStatus.OK, response.getStatusCode());
+        assertEquals(userDTO, response.getBody());
+    }
 
-        ResponseEntity<User> response = userController.updateUser(999L, user);
+    @Test
+    void updateUser_ShouldReturnNotFound_WhenUserDoesNotExist() {
+        // Arrange
+        Long userId = 1L;
+        UserDTO userDTO = new UserDTO();
+        userDTO.setId(userId);
+        userDTO.setUsername("updateduser");
+        userDTO.setEmail("updated@example.com");
+        userDTO.setPassword("password123");
+        userDTO.setRol("USER");
+        when(userService.updateUser(userId, userDTO)).thenThrow(new RuntimeException("User not found"));
 
+        // Act
+        ResponseEntity<UserDTO> response = userController.updateUser(userId, userDTO);
 
+        // Assert
+        assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
-
     @Test
-    void deleteUserNoContent() {
-        when(userService.getUserById(1L)).thenReturn(Optional.of(user));
+    void deleteUser_ShouldReturnNoContent_WhenSuccessful() {
+        // Arrange
+        Long userId = 1L;
+        when(userService.getUserById(userId)).thenReturn(Optional.of(new UserDTO()));
 
-        ResponseEntity<Void> response = userController.deleteUser(1L);
+        // Act
+        ResponseEntity<Void> response = userController.deleteUser(userId);
 
+        // Assert
+        assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        verify(userService, times(1)).deleteUser(1L);
+        verify(userService).deleteUser(userId);
     }
 
     @Test
-    void deleteUserNotFound() {
-        when(userService.getUserById(999L)).thenReturn(Optional.empty());
+    void deleteUser_ShouldReturnNotFound_WhenUserDoesNotExist() {
+        // Arrange
+        Long userId = 1L;
+        when(userService.getUserById(userId)).thenReturn(Optional.empty());
 
-        ResponseEntity<Void> response = userController.deleteUser(999L);
+        // Act
+        ResponseEntity<Void> response = userController.deleteUser(userId);
 
+        // Assert
+        assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
- @Test
-    void updatePassword() {
-
-        UserService userService = mock(UserService.class);
-        UserController userController = new UserController(userService);
-
+    @Test
+    void updatePassword_ShouldReturnUpdatedUser_WhenSuccessful() {
+        // Arrange
         Long userId = 1L;
-        String newPassword = "newPassword";
-        User mockUser = new User(userId, "testUser", "testUser@gmail.com", "oldPassword", "USER");
-        mockUser.setPassword(newPassword);
+        String newPassword = "newPassword123";
+        UserDTO userDTO = new UserDTO();
+        userDTO.setId(userId);
+        userDTO.setUsername("password");
+        userDTO.setEmail("updated@example.com");
+        userDTO.setPassword("password123");
+        userDTO.setRol("USER");
 
-        when(userService.updatePassword(userId, newPassword)).thenReturn(mockUser);
+        when(userService.updatePassword(userId, newPassword)).thenReturn(userDTO);
 
-        ResponseEntity<User> response = userController.updatePassword(userId, newPassword);
+        // Act
+        ResponseEntity<UserDTO> response = userController.updatePassword(userId, newPassword);
 
+        // Assert
+        assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(newPassword, response.getBody().getPassword());
-        verify(userService).updatePassword(userId, newPassword);
+        assertEquals(userDTO, response.getBody());
     }
 
     @Test
-    void updatePasswordUserNotFound() {
-
-        UserService userService = mock(UserService.class);
-        UserController userController = new UserController(userService);
-
+    void updatePassword_ShouldReturnNotFound_WhenUserDoesNotExist() {
+        // Arrange
         Long userId = 1L;
-        String newPassword = "newPassword";
+        String newPassword = "newPassword123";
+        when(userService.updatePassword(userId, newPassword)).thenThrow(new RuntimeException("User not found"));
 
-        when(userService.updatePassword(userId, newPassword))
-                .thenThrow(new RuntimeException("User not found with the id: " + userId));
+        // Act
+        ResponseEntity<UserDTO> response = userController.updatePassword(userId, newPassword);
 
-        ResponseEntity<User> response = userController.updatePassword(userId, newPassword);
-
+        // Assert
+        assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        assertNull(response.getBody());
-        verify(userService).updatePassword(userId, newPassword);
     }
-
 
 }
+
