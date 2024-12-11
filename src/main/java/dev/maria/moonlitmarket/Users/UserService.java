@@ -83,7 +83,7 @@ public class UserService {
         return "Login successful";
     }
 
-    private UserDTO toDTO(User user) {
+    public UserDTO toDTO(User user) {
         UserDTO dto = new UserDTO();
         dto.setId(user.getId());
         dto.setUsername(user.getUsername());
