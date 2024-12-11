@@ -1,6 +1,7 @@
 package dev.maria.moonlitmarket.Products;
 
 import dev.maria.moonlitmarket.Category.Category;
+import dev.maria.moonlitmarket.Orders.Orders;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.FetchType;
@@ -42,5 +43,9 @@ public class Products {
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "category_id", referencedColumnName = "id")
     private Category category;
+
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "order_id", referencedColumnName = "id")
+    private Orders order;
 
 }

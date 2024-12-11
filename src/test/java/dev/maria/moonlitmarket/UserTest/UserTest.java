@@ -14,7 +14,9 @@ public class UserTest {
         String email = "testUser@gmail.com";
         String password = "testPassword";
         String rol = "admin";
-        User user = new User(id, username, email, password, rol);
+        String address = "testAddress";
+        String phoneNumber = "testPhoneNumber";
+        User user = new User();
 
         assertEquals(id, user.getId());
         assertEquals(username, user.getUsername());

@@ -39,7 +39,7 @@ class UserServiceTest {
     @Test
     void createUser_ShouldReturnCreatedUserDTO() {
         // Arrange
-        User user = new User();
+        UserDTO user = new UserDTO();
         user.setUsername("testUser");
         user.setEmail("test@example.com");
         user.setPassword("plainPassword");
@@ -69,8 +69,21 @@ class UserServiceTest {
     @Test
     void getUsers_ShouldReturnListOfUserDTOs() {
         // Arrange
-        User user1 = new User(1L, "user1", "user1@example.com", "password", "USER");
-        User user2 = new User(2L, "user2", "user2@example.com", "password", "ADMIN");
+        User user1 = new User();
+        user1.setUsername("user1");
+        user1.setEmail("user1@example.com");
+        user1.setPassword("password");
+        user1.setRol("USER");
+        user1.setAddress("address1");
+        user1.setPhoneNumber("1234567890");
+        
+        User user2 = new User();
+        user2.setUsername("user2");
+        user2.setEmail("user2@example.com");
+        user2.setPassword("password");
+        user2.setRol("ADMIN");
+        user2.setAddress("address2");
+        user2.setPhoneNumber("9876543210");
 
         when(repository.findAll()).thenReturn(List.of(user1, user2));
 
@@ -86,7 +99,14 @@ class UserServiceTest {
     @Test
     void getUserById_UserExists_ShouldReturnUserDTO() {
         // Arrange
-        User user = new User(1L, "testUser", "test@example.com", "password", "USER");
+        User user = new User();
+        user.setUsername("testUser");
+        user.setEmail("test@example.com");
+        user.setPassword("password");
+        user.setRol("USER");
+        user.setAddress("address");
+        user.setPhoneNumber("1234567890");
+
         when(repository.findById(1L)).thenReturn(Optional.of(user));
 
         // Act
@@ -112,8 +132,21 @@ class UserServiceTest {
     @Test
     void updateUser_UserExists_ShouldUpdateAndReturnUserDTO() {
         // Arrange
-        User existingUser = new User(1L, "oldUser", "old@example.com", "oldPassword", "USER");
-        User updatedUser = new User(1L, "newUser", "new@example.com", "encodedPassword", "ADMIN");
+        User existingUser = new User();
+        existingUser.setUsername("testUser");
+        existingUser.setEmail("test@example.com");
+        existingUser.setPassword("password");
+        existingUser.setRol("USER");
+        existingUser.setAddress("address");
+        existingUser.setPhoneNumber("1234567890");
+
+        User updatedUser = new User();
+        updatedUser.setUsername("newUser");
+        updatedUser.setEmail("new@example.com");
+        updatedUser.setPassword("encodedPassword");
+        updatedUser.setRol("ADMIN");
+        updatedUser.setAddress("newAddress");
+        updatedUser.setPhoneNumber("9876543210");
 
         UserDTO updateDetails = new UserDTO();
         updateDetails.setId(1L);
@@ -178,7 +211,13 @@ class UserServiceTest {
     @Test
     void login_ValidCredentials_ShouldReturnSuccessMessage() {
         // Arrange
-        User user = new User(1L, "testUser", "test@example.com", "encodedPassword", "USER");
+        User user = new User();
+        user.setUsername("testUser");
+        user.setPassword("encodedPassword");
+        user.setRol("USER");
+        user.setEmail("test@example.com");
+        user.setAddress("testAddress");
+        user.setPhoneNumber("1234567890");
 
         when(repository.findByUsername("testUser")).thenReturn(user);
         when(encoder.matches("plainPassword", "encodedPassword")).thenReturn(true);
