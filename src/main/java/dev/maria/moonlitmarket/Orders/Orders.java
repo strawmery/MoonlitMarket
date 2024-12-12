@@ -39,9 +39,8 @@ public class Orders {
     @OneToMany(mappedBy = "order", cascade = CascadeType.ALL)
     private List<Products> products;
 
-    //TODO: cambiar a enum
     @Column(nullable = false)
-    private String status;
+    private Status status;
 
     @Column(nullable = false)
     private LocalDateTime orderDate;
