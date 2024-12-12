@@ -5,6 +5,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Component;
 
+import dev.maria.moonlitmarket.Users.Role;
 import dev.maria.moonlitmarket.Users.User;
 import dev.maria.moonlitmarket.Users.UserRepository;
 import jakarta.transaction.Transactional;
@@ -27,7 +28,7 @@ public class DataInicializater implements CommandLineRunner {
                 root.setUsername("root");
                 root.setEmail("admin@gmail.com");
                 root.setPassword(passwordEncoder.encode("passwordAdmin"));
-                root.setRol("ADMIN");
+                root.setRole(Role.ADMIN);
                 userRepository.save(root);
                 System.out.println("usuario root creado en la base de datos");
             }else{

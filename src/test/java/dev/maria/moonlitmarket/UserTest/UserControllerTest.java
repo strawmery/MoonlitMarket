@@ -1,21 +1,21 @@
 package dev.maria.moonlitmarket.UserTest;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
+import dev.maria.moonlitmarket.Users.Role;
 import dev.maria.moonlitmarket.Users.UserController;
 import dev.maria.moonlitmarket.Users.UserDTO;
 import dev.maria.moonlitmarket.Users.UserService;
@@ -31,19 +31,16 @@ class UserControllerTest {
 
     @Test
     void createUser_ShouldReturnCreatedUser_WhenSuccessful() {
-        // Arrange
         UserDTO userDTO = new UserDTO();
         userDTO.setUsername("testuser");
         userDTO.setEmail("test@example.com");
         userDTO.setPassword("password123");
-        userDTO.setRol("USER");
+        userDTO.setRole(Role.USER);
         
         when(userService.createUser(userDTO)).thenReturn(userDTO);
 
-        // Act
         ResponseEntity<UserDTO> response = userController.createUser(userDTO);
 
-        // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.CREATED, response.getStatusCode());
         assertEquals(userDTO, response.getBody());
@@ -57,13 +54,13 @@ class UserControllerTest {
         user1.setUsername("user1");
         user1.setEmail("user1@example.com");
         user1.setPassword("pass1");
-        user1.setRol("USER");
+        user1.setRole(Role.USER);
         UserDTO user2 = new UserDTO();
         user2.setId(2L);
         user2.setUsername("user2");
         user2.setEmail("user2@example.com");
         user2.setPassword("pass2");
-        user2.setRol("ADMIN");
+        user2.setRole(Role.ADMIN);
         List<UserDTO> users = List.of(user1, user2);
 
         when(userService.getUsers()).thenReturn(users);
@@ -86,7 +83,7 @@ class UserControllerTest {
         userDTO.setUsername("updateduser");
         userDTO.setEmail("updated@example.com");
         userDTO.setPassword("password123");
-        userDTO.setRol("USER");
+        userDTO.setRole(Role.USER);
         when(userService.updateUser(userId, userDTO)).thenReturn(userDTO);
 
         // Act
@@ -107,7 +104,7 @@ class UserControllerTest {
         userDTO.setUsername("updateduser");
         userDTO.setEmail("updated@example.com");
         userDTO.setPassword("password123");
-        userDTO.setRol("USER");
+        userDTO.setRole(Role.USER);
         when(userService.updateUser(userId, userDTO)).thenThrow(new RuntimeException("User not found"));
 
         // Act
@@ -157,7 +154,7 @@ class UserControllerTest {
         userDTO.setUsername("password");
         userDTO.setEmail("updated@example.com");
         userDTO.setPassword("password123");
-        userDTO.setRol("USER");
+        userDTO.setRole(Role.USER);
 
         when(userService.updatePassword(userId, newPassword)).thenReturn(userDTO);
 

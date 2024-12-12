@@ -16,6 +16,7 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 
+import dev.maria.moonlitmarket.Users.Role;
 import dev.maria.moonlitmarket.Users.User;
 import dev.maria.moonlitmarket.Users.UserRepository;
 import dev.maria.moonlitmarket.Users.UserServiceDetailsImpl;
@@ -37,7 +38,7 @@ public class UserServiceDetailsImplTest {
         user.setUsername("testuser");
         user.setPassword("password123");
         user.setEmail("test@example.com");
-        user.setRol("USER");
+        user.setRole(Role.USER);
         user.setAddress("testAddress");
         user.setPhoneNumber("1234567890");
         when(repository.findByUsername("testuser")).thenReturn(user);

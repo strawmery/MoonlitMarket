@@ -1,13 +1,11 @@
 package dev.maria.moonlitmarket.OrdersTest;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.List;
 
-import dev.maria.moonlitmarket.Orders.Orders;
-import dev.maria.moonlitmarket.Orders.OrdersController;
-import dev.maria.moonlitmarket.Orders.OrdersService;
-import dev.maria.moonlitmarket.Products.Products;
-import dev.maria.moonlitmarket.Users.User;
-
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -18,13 +16,12 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.List;
+import dev.maria.moonlitmarket.Orders.Orders;
+import dev.maria.moonlitmarket.Orders.OrdersController;
+import dev.maria.moonlitmarket.Orders.OrdersService;
+import dev.maria.moonlitmarket.Products.Products;
+import dev.maria.moonlitmarket.Users.Role;
+import dev.maria.moonlitmarket.Users.User;
 
 @ExtendWith(MockitoExtension.class)
 class OrdersControllerTest {
@@ -46,7 +43,7 @@ class OrdersControllerTest {
         user.setUsername("John Doe");
         user.setEmail("T7e6o@example.com");
         user.setPassword("password");
-        user.setRol("USER");
+        user.setRole(Role.USER);
         user.setAddress("123 Main St");
         user.setPhoneNumber("123-456-7890");
 

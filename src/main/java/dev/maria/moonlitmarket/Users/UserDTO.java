@@ -18,7 +18,7 @@ public class UserDTO {
     private String username;
     private String email;
     private String password;
-    private String rol;
+    private Role role;
     private String address;
     private String phoneNumber;
     private List<Wishlist> Wishlists;
