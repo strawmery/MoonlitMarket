@@ -26,17 +26,17 @@ public class OrdersService {
         order.setUser(user);
         order.setProducts(products);
         order.setOrderDate(LocalDateTime.now());
-        order.setStatus("pending");
+        order.setStatus(Status.PENDING);
 
         products.forEach(product -> product.setOrder(order));
 
         return repository.save(order);
     }
 
-    public Orders updateOrderStatus(Long orderId, String status){
+    public Orders updateOrderStatus(Long orderId, Status newStatus) {
         Orders order = repository.findById(orderId).orElseThrow(()-> new RuntimeException("Order not found with the id: " + orderId));
         
-        order.setStatus(status);
+        order.setStatus(newStatus);
 
         return repository.save(order);
     }

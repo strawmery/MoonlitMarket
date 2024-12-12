@@ -19,6 +19,7 @@ import org.springframework.http.ResponseEntity;
 import dev.maria.moonlitmarket.Orders.Orders;
 import dev.maria.moonlitmarket.Orders.OrdersController;
 import dev.maria.moonlitmarket.Orders.OrdersService;
+import dev.maria.moonlitmarket.Orders.Status;
 import dev.maria.moonlitmarket.Products.Products;
 import dev.maria.moonlitmarket.Users.Role;
 import dev.maria.moonlitmarket.Users.User;
@@ -61,7 +62,7 @@ class OrdersControllerTest {
         order.setUser(user);
         order.setProducts(Arrays.asList(product1, product2));
         order.setOrderDate(LocalDateTime.now());
-        order.setStatus("pending");
+        order.setStatus(Status.PENDING);
     }
 
     @Test
@@ -98,12 +99,11 @@ class OrdersControllerTest {
     void testUpdateOrderStatus_Success() {
         // Arrange
         Long orderId = 1001L;
-        String status = "shipped";
-        order.setStatus(status);
-        Mockito.when(ordersService.updateOrderStatus(orderId, status)).thenReturn(order);
+        order.setStatus(Status.SHIPPED);
+        Mockito.when(ordersService.updateOrderStatus(orderId, Status.SHIPPED)).thenReturn(order);
 
         // Act
-        ResponseEntity<Orders> response = ordersController.updateOrderStatus(orderId, status);
+        ResponseEntity<Orders> response = ordersController.updateOrderStatus(orderId, Status.SHIPPED);
 
         // Assert
         assertNotNull(response);
@@ -117,10 +117,9 @@ class OrdersControllerTest {
     void testUpdateOrderStatus_BadRequest() {
         // Arrange
         Long orderId = 999L;
-        String status = "shipped";
-        Mockito.when(ordersService.updateOrderStatus(orderId, status)).thenThrow(new RuntimeException("Order not found"));
+        Mockito.when(ordersService.updateOrderStatus(orderId, Status.SHIPPED)).thenThrow(new RuntimeException("Order not found"));
 
-        ResponseEntity<Orders> response = ordersController.updateOrderStatus(orderId, status);
+        ResponseEntity<Orders> response = ordersController.updateOrderStatus(orderId, Status.SHIPPED);
 
         assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
     }

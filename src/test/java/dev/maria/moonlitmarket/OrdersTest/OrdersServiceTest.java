@@ -1,25 +1,31 @@
 package dev.maria.moonlitmarket.OrdersTest;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.any;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.never;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.verifyNoInteractions;
+import static org.mockito.Mockito.when;
 import org.mockito.MockitoAnnotations;
 
 import dev.maria.moonlitmarket.Orders.Orders;
 import dev.maria.moonlitmarket.Orders.OrdersRepository;
 import dev.maria.moonlitmarket.Orders.OrdersService;
+import dev.maria.moonlitmarket.Orders.Status;
 import dev.maria.moonlitmarket.Products.Products;
 import dev.maria.moonlitmarket.Users.User;
 import dev.maria.moonlitmarket.Users.UserRepository;
-
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Optional;
 
 public class OrdersServiceTest {
 
@@ -57,7 +63,7 @@ public class OrdersServiceTest {
         expectedOrder.setUser(user);
         expectedOrder.setProducts(Arrays.asList(product1, product2));
         expectedOrder.setOrderDate(LocalDateTime.now());
-        expectedOrder.setStatus("pending");
+        expectedOrder.setStatus(Status.PENDING);
 
         // Configurar mocks
         when(userRepository.findById(userId)).thenReturn(Optional.of(user));
@@ -93,11 +99,11 @@ public class OrdersServiceTest {
     @Test
     void testUpdateOrderStatus() {
         Long orderId = 1L;
-        String newStatus = "completed";
+        Status newStatus = Status.DELIVERED;
 
         Orders existingOrder = new Orders();
         existingOrder.setId(orderId);
-        existingOrder.setStatus("pending");
+        existingOrder.setStatus(Status.PENDING);
 
         Orders updatedOrder = new Orders();
         updatedOrder.setId(orderId);
@@ -121,7 +127,7 @@ public class OrdersServiceTest {
         when(ordersRepository.findById(orderId)).thenReturn(Optional.empty());
 
         Exception exception = assertThrows(RuntimeException.class, () -> {
-            ordersService.updateOrderStatus(orderId, "completed");
+            ordersService.updateOrderStatus(orderId, Status.DELIVERED);
         });
 
         assertEquals("Order not found with the id: " + orderId, exception.getMessage());
