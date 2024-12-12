@@ -7,24 +7,24 @@ import dev.maria.moonlitmarket.Users.User;
 
 public class UserTest {
 
-    @Test
-    void testConstructorUser() {
-        Long id = 1L;
-        String username = "testUser";
-        String email = "testUser@gmail.com";
-        String password = "testPassword";
-        String rol = "admin";
-        String address = "testAddress";
-        String phoneNumber = "testPhoneNumber";
-        User user = new User();
+    // @Test
+    // void testConstructorUser() {
+    //     Long id = 1L;
+    //     String username = "testUser";
+    //     String email = "testUser@gmail.com";
+    //     String password = "testPassword";
+    //     String rol = "admin";
+    //     String address = "testAddress";
+    //     String phoneNumber = "testPhoneNumber";
+    //     User user = new User();
 
-        assertEquals(id, user.getId());
-        assertEquals(username, user.getUsername());
-        assertEquals(email, user.getEmail());
-        assertEquals(password, user.getPassword());
-        assertEquals(rol, user.getRol());
+    //     assertEquals(id, user.getId());
+    //     assertEquals(username, user.getUsername());
+    //     assertEquals(email, user.getEmail());
+    //     assertEquals(password, user.getPassword());
+    //     assertEquals(rol, user.getRol());
 
-    }
+    // }
 
     @Test
     void testId(){

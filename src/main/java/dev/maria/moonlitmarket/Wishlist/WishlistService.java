@@ -19,10 +19,11 @@ public class WishlistService {
     private WishlistRepository wishlistRepository;
 
     @Autowired
-    private ProductsRepository productsRepository;
+    private UserRepository userRepository;
 
     @Autowired
-    private UserRepository userRepository;
+    private ProductsRepository productsRepository;
+
 
     @Transactional
     public WishlistDTO addToWishlist(Long userId, Long productId){

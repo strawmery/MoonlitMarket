@@ -1,12 +1,12 @@
 package dev.maria.moonlitmarket.Users;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
+
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.crypto.password.PasswordEncoder;
+import org.springframework.stereotype.Service;
 
 @Service
 public class UserService {
@@ -22,7 +22,7 @@ public class UserService {
         user.setUsername(userDTO.getUsername());
         user.setEmail(userDTO.getEmail());
         user.setPassword(encoder.encode(userDTO.getPassword()));
-        user.setRol(userDTO.getRol());
+        user.setRole(Role.USER);
 
         User savedUser = repository.save(user);
         return toDTO(savedUser);
@@ -47,7 +47,6 @@ public class UserService {
             user.setPassword(encoder.encode(details.getPassword()));
         }
         user.setEmail(details.getEmail());
-        user.setRol(details.getRol());
 
         User updatedUser = repository.save(user);
         return toDTO(updatedUser);
@@ -88,7 +87,7 @@ public class UserService {
         dto.setId(user.getId());
         dto.setUsername(user.getUsername());
         dto.setEmail(user.getEmail());
-        dto.setRol(user.getRol());
+        dto.setRol(user.getRole().name());
         dto.setAddress(user.getAddress());
         dto.setPhoneNumber(user.getPhoneNumber());
         return dto;
