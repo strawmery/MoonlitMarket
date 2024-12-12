@@ -1,8 +1,9 @@
 package dev.maria.moonlitmarket.Invoice;
 
-import java.net.http.HttpHeaders;
-
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.HttpStatus;
 import org.springframework.http.MediaType;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -19,6 +20,8 @@ public class InvoiceController {
     @Autowired
     private InvoiceService invoiceService;
 
+    private static final Logger logger = LoggerFactory.getLogger(InvoiceController.class);
+
     @PostMapping("/user/invoice/{OrderId}")
     public ResponseEntity<Invoice> createInvoice(@PathVariable Long OrderId){
         try{
@@ -31,11 +34,17 @@ public class InvoiceController {
 
     @GetMapping("/download")
     public ResponseEntity<byte[]> downloadInvoice(@RequestParam Long orderId) {
-        byte[] pdf = invoiceService.dowloadInvoice(orderId);
+        try {
+            byte[] pdf = invoiceService.dowloadInvoice(orderId);
+            logger.info("Generated invoice for orderId: {}", orderId);
+            return ResponseEntity.ok()
+                    .header("Content-Disposition", "attachment; filename=invoice_" + orderId + ".pdf")
+                    .contentType(MediaType.APPLICATION_PDF)
+                    .body(pdf);
+        } catch (Exception e) {
+            logger.error("Error generating invoice for orderId: {}", orderId, e);
+            return ResponseEntity.status(HttpStatus.INTERNAL_SERVER_ERROR).build();
+        }
 
-        return ResponseEntity.ok()
-                .header(HttpHeaders.CONTENT_DISPOSITION, "attachment; filename=invoice_" + orderId + ".pdf")
-                .contentType(MediaType.APPLICATION_PDF)
-                .body(pdf);
     }
 }
