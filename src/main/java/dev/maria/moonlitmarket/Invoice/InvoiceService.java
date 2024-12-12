@@ -12,6 +12,7 @@ import org.springframework.stereotype.Service;
 
 import dev.maria.moonlitmarket.Orders.Orders;
 import dev.maria.moonlitmarket.Orders.OrdersRepository;
+import dev.maria.moonlitmarket.Products.Products;
 import jakarta.transaction.Transactional;
 
 @Service
@@ -46,36 +47,52 @@ public class InvoiceService {
     }
 
     public byte[] dowloadInvoice(Long orderId) {
-        try (PDDocument document = new PDDocument(); 
-             ByteArrayOutputStream outputStream = new ByteArrayOutputStream()){
-                
-                PDPage page = new PDPage();
-                document.addPage(page);
+        Orders order = ordersRepository.findById(orderId)
+                .orElseThrow(() -> new RuntimeException("Order not found with the id: " + orderId));
 
-                try(PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
-                    contentStream.setFont(PDType1Font.HELVETICA_BOLD, 14);
-                    contentStream.beginText();
-                    contentStream.newLineAtOffset(100, 700);
+        try (PDDocument document = new PDDocument();
+            ByteArrayOutputStream outputStream = new ByteArrayOutputStream()) {
 
-                    contentStream.showText("Invoice for Order ID: " + orderId);
-                    contentStream.newLineAtOffset(0, -20);
-                    contentStream.showText("Customer: "+ order.getUser().getUsername());
-                    contentStream.newLineAtOffset(0, -20);
-                    contentStream.showText("Product A -"+ order.getProducts().get(0).getName());
-                    contentStream.newLineAtOffset(0, -20);
-                    contentStream.showText("Product B -"+ order.getProducts().get(1).getName());
-                    contentStream.newLineAtOffset(0, -20);
-                    contentStream.showText("Total: "+ getTotalAmount());
+            PDPage page = new PDPage();
+            document.addPage(page);
 
-                    contentStream.endText();
+            try (PDPageContentStream contentStream = new PDPageContentStream(document, page)) {
+                contentStream.setFont(PDType1Font.HELVETICA_BOLD, 14);
+                contentStream.beginText();
+                contentStream.newLineAtOffset(100, 700);
+
+                contentStream.showText("Invoice for Order ID: " + orderId);
+                contentStream.newLineAtOffset(0, -20);
+
+                if (order.getUser() != null) {
+                    contentStream.showText("Customer: " + order.getUser().getUsername());
+                } else {
+                    contentStream.showText("Customer: Unknown");
                 }
-                    document.save(outputStream);
-                    return outputStream.toByteArray();
-                
-             }catch(Exception e){
-                throw new RuntimeException("Error downloading invoice",e);
-             }
+                contentStream.newLineAtOffset(0, -20);
+
+                if (order.getProducts() != null && !order.getProducts().isEmpty()) {
+                    for (Products product : order.getProducts()) {
+                        contentStream.showText("Product: " + product.getName() + " - $" + product.getPrice());
+                        contentStream.newLineAtOffset(0, -20);
+                    }
+                } else {
+                    contentStream.showText("No products available.");
+                }
+
+                contentStream.newLineAtOffset(0, -20);
+                contentStream.showText("Total: " + getTotalAmount());
+                contentStream.endText();
+            }
+
+            document.save(outputStream);
+            return outputStream.toByteArray();
+
+        } catch (Exception e) {
+            throw new RuntimeException("Error downloading invoice", e);
+        }
     }
+
 
     public double getTotalAmount() {
         double totalAmount = order.getProducts().stream().mapToDouble(product -> product.getPrice()).sum();
