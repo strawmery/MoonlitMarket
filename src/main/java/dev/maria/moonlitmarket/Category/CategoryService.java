@@ -34,8 +34,12 @@ public class CategoryService {
         }
     }
 
-    public Category getCategoryById(Long id) {
-        return repository.findById(id).orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
+    public Optional<Category> getCategoryById(Long id) {
+        if(repository.existsById(id)){
+            return repository.findById(id);
+        }else{
+            throw new RuntimeException("Categoria no encontrada");
+        }
     }
     
     public List<Category> getAllCategories() {
