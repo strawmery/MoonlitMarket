@@ -21,7 +21,7 @@ public class OrdersController {
     @Autowired
     private OrdersService service;
 
-    @PostMapping("/user/orders/create")
+    @PostMapping("/public/orders/create")
     public ResponseEntity<Orders> createOrder(@RequestParam Long userId, @RequestBody List<Products> products) {
         try{
             Orders order = service.createOrder(userId, products);
