@@ -24,9 +24,6 @@ public class InvoiceService {
     @Autowired
     private OrdersRepository ordersRepository;
 
-    @Autowired
-    private Orders order;
-
     @Transactional
     public Invoice createInvoice(Long orderId) {
         Orders order = ordersRepository.findById(orderId).orElseThrow(() -> new RuntimeException("Order not found with the id: " + orderId));
@@ -81,7 +78,7 @@ public class InvoiceService {
                 }
 
                 contentStream.newLineAtOffset(0, -20);
-                contentStream.showText("Total: " + getTotalAmount());
+                contentStream.showText("Total: " + getTotalAmount(order));
                 contentStream.endText();
             }
 
@@ -94,7 +91,7 @@ public class InvoiceService {
     }
 
 
-    public double getTotalAmount() {
+    public double getTotalAmount(Orders order) {
         double totalAmount = order.getProducts().stream().mapToDouble(product -> product.getPrice()).sum();
         double taxAmount = totalAmount * 0.21;
 
