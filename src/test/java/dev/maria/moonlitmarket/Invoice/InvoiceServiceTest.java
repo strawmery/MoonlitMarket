@@ -1,22 +1,26 @@
 package dev.maria.moonlitmarket.Invoice;
 
+import java.time.LocalDateTime;
+import java.util.Arrays;
+import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.anyLong;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
 import org.mockito.Mockito;
+import static org.mockito.Mockito.when;
 import org.mockito.MockitoAnnotations;
 
 import dev.maria.moonlitmarket.Orders.Orders;
 import dev.maria.moonlitmarket.Orders.OrdersRepository;
 import dev.maria.moonlitmarket.Products.Products;
 import dev.maria.moonlitmarket.Users.User;
-
-import static org.junit.jupiter.api.Assertions.*;
-
-import java.time.LocalDateTime;
-import java.util.Arrays;
-import java.util.Optional;
 
 class InvoiceServiceTest {
 
@@ -107,8 +111,19 @@ class InvoiceServiceTest {
 
     @Test
     void testGetTotalAmount() {
-        double totalAmount = invoiceService.getTotalAmount();
+        Orders order = new Orders();
+        Products product1 = new Products();
+        product1.setPrice(100.0);
+        Products product2 = new Products();
+        product2.setPrice(150.0);
 
-        assertEquals(0.0, totalAmount);
+        order.setProducts(Arrays.asList(product1, product2));
+
+        when(ordersRepository.findById(anyLong())).thenReturn(java.util.Optional.of(order));
+
+        double totalAmount = invoiceService.getTotalAmount(order);
+
+        double expectedTotal = (100.0 + 150.0) * 1.21;
+        assertEquals(expectedTotal, totalAmount, 0.01);
     }
 }
