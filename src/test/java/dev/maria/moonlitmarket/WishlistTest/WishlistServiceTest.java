@@ -42,7 +42,6 @@ class WishlistServiceTest {
 
     @Test
     void addToWishlist_ShouldAddProductToWishlist_WhenUserAndProductExist() {
-        // Arrange
         Long userId = 1L;
         Long productId = 100L;
 
@@ -62,10 +61,8 @@ class WishlistServiceTest {
         when(wishlistRepository.existsByUserIdAndProductId(userId, productId)).thenReturn(false);
         when(wishlistRepository.save(any(Wishlist.class))).thenReturn(wishlist);
 
-        // Act
         WishlistDTO result = wishlistService.addToWishlist(userId, productId);
 
-        // Assert
         assertNotNull(result);
         assertEquals(10L, result.getId());
         assertEquals(userId, result.getUserId());
@@ -76,7 +73,6 @@ class WishlistServiceTest {
 
     @Test
     void addToWishlist_ShouldThrowException_WhenProductAlreadyInWishlist() {
-        // Arrange
         Long userId = 1L;
         Long productId = 100L;
 
@@ -84,7 +80,6 @@ class WishlistServiceTest {
         when(productsRepository.findById(productId)).thenReturn(Optional.of(new Products()));
         when(wishlistRepository.existsByUserIdAndProductId(userId, productId)).thenReturn(true);
 
-        // Act & Assert
         RuntimeException exception = assertThrows(
                 RuntimeException.class,
                 () -> wishlistService.addToWishlist(userId, productId)
@@ -95,13 +90,11 @@ class WishlistServiceTest {
 
     @Test
     void addToWishlist_ShouldThrowException_WhenUserNotFound() {
-        // Arrange
         Long userId = 1L;
         Long productId = 100L;
 
         when(userRepository.findById(userId)).thenReturn(Optional.empty());
 
-        // Act & Assert
         RuntimeException exception = assertThrows(
                 RuntimeException.class,
                 () -> wishlistService.addToWishlist(userId, productId)
@@ -112,14 +105,12 @@ class WishlistServiceTest {
 
     @Test
     void addToWishlist_ShouldThrowException_WhenProductNotFound() {
-        // Arrange
         Long userId = 1L;
         Long productId = 100L;
 
         when(userRepository.findById(userId)).thenReturn(Optional.of(new User()));
         when(productsRepository.findById(productId)).thenReturn(Optional.empty());
 
-        // Act & Assert
         RuntimeException exception = assertThrows(
                 RuntimeException.class,
                 () -> wishlistService.addToWishlist(userId, productId)
@@ -130,20 +121,16 @@ class WishlistServiceTest {
 
     @Test
     void removeFromWishlist_ShouldDeleteProductFromWishlist() {
-        // Arrange
         Long userId = 1L;
         Long productId = 100L;
 
-        // Act
         wishlistService.removeFromWishlist(userId, productId);
 
-        // Assert
         verify(wishlistRepository).deleteByUserIdAndProductId(userId, productId);
     }
 
     @Test
     void getWishlist_ShouldReturnListOfWishlistDTOs() {
-        // Arrange
         Long userId = 1L;
 
         User user = new User();
@@ -169,10 +156,8 @@ class WishlistServiceTest {
 
         when(wishlistRepository.findByUserId(userId)).thenReturn(wishlistEntities);
 
-        // Act
         List<WishlistDTO> result = wishlistService.getWishlist(userId);
 
-        // Assert
         assertNotNull(result);
         assertEquals(2, result.size());
         assertEquals(10L, result.get(0).getId());

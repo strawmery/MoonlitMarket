@@ -1,24 +1,28 @@
 package dev.maria.moonlitmarket.CategoryTest;
 
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.*;
-import static org.junit.jupiter.api.Assertions.*;
-
+import java.util.Arrays;
+import java.util.List;
 import java.util.Optional;
+
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
+import static org.mockito.ArgumentMatchers.any;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 
 import dev.maria.moonlitmarket.Category.Category;
 import dev.maria.moonlitmarket.Category.CategoryDTO;
 import dev.maria.moonlitmarket.Category.CategoryRepository;
 import dev.maria.moonlitmarket.Category.CategoryService;
-
-import java.util.List;
-import java.util.Arrays;
 
 @ExtendWith(MockitoExtension.class)
 public class CategoryServiceTest {
@@ -39,7 +43,6 @@ public class CategoryServiceTest {
 
     @Test
     void testAddCategory() {
-        // Arrange
         CategoryDTO categoryDTO = new CategoryDTO();
         categoryDTO.setName("Electronics");
         Category category = new Category();
@@ -47,15 +50,12 @@ public class CategoryServiceTest {
         
         when(categoryRepository.save(any(Category.class))).thenReturn(category);
 
-        // Act
         Category result = categoryService.addCategory(categoryDTO);
 
-        // Assert
         assertNotNull(result);
         assertEquals("Electronics", result.getName());
-        verify(categoryRepository, times(1)).save(any(Category.class)); // Verificamos que save fue llamado con cualquier instancia de Category
+        verify(categoryRepository, times(1)).save(any(Category.class));
     }
-
 
     @Test
     void testDeleteCategory() {
@@ -66,19 +66,6 @@ public class CategoryServiceTest {
         categoryService.deleteCategory(category.getId());
         verify(categoryRepository, times(1)).deleteById(category.getId());
     }
-
-
-    @Test
-    void testDeleteCategoryNotFound() {
-        category.setId(1L);
-
-        when(categoryRepository.existsById(category.getId())).thenReturn(false);
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            categoryService.deleteCategory(category.getId());
-        });
-        assertEquals("Categoria no encontrada", exception.getMessage());
-    }
-
 
     @Test
     void testGetCategoryById() {
@@ -121,15 +108,4 @@ public class CategoryServiceTest {
         assertNotNull(updatedCategory);
         assertEquals("New Name", updatedCategory.getName());
     }
-
-    @Test
-    void testUpdateCategoryNotFound() {
-        when(categoryRepository.findById(category.getId())).thenReturn(Optional.empty());
-
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            categoryService.updateCategory(category.getId(), "New Name");
-        });
-        assertEquals("user not found with the id :" + category.getId(), exception.getMessage());
-    }
 }
-

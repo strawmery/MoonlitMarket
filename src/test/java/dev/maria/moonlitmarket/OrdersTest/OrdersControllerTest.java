@@ -64,47 +64,14 @@ class OrdersControllerTest {
         order.setStatus(Status.PENDING);
     }
 
-    // @Test
-    // void testCreateOrder_Success() {
-    //     // Arrange
-    //     Long userId = 1L;
-    //     List<Products> products = Arrays.asList(product1, product2);
-    //     Mockito.when(ordersService.createOrder(userId, products)).thenReturn(order);
-
-    //     // Act
-    //     ResponseEntity<Orders> response = ordersController.createOrder(userId, products);
-
-    //     // Assert
-    //     assertNotNull(response);
-    //     assertEquals(HttpStatus.OK, response.getStatusCode());
-    //     assertNotNull(response.getBody());
-    //     assertEquals(order.getId(), response.getBody().getId());
-    //     assertEquals(Status.PENDING, response.getBody().getStatus());
-    // }
-
-    // @Test
-    // void testCreateOrder_BadRequest() {
-    //     // Arrange
-    //     Long userId = 99L;
-    //     List<ProductsDTO> products = Arrays.asList(product1, product2);
-    //     Mockito.when(ordersService.createOrder(userId, products)).thenThrow(new RuntimeException("User not found"));
-
-    //     ResponseEntity<Orders> response = ordersController.createOrder(userId, products);
-        
-    //     assertEquals(HttpStatus.BAD_REQUEST, response.getStatusCode());
-    // }
-
     @Test
     void testUpdateOrderStatus_Success() {
-        // Arrange
         Long orderId = 1001L;
         order.setStatus(Status.SHIPPED);
         Mockito.when(ordersService.updateOrderStatus(orderId, Status.SHIPPED)).thenReturn(order);
 
-        // Act
         ResponseEntity<Orders> response = ordersController.updateOrderStatus(orderId, Status.SHIPPED);
 
-        // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -114,7 +81,6 @@ class OrdersControllerTest {
 
     @Test
     void testUpdateOrderStatus_BadRequest() {
-        // Arrange
         Long orderId = 999L;
         Mockito.when(ordersService.updateOrderStatus(orderId, Status.SHIPPED)).thenThrow(new RuntimeException("Order not found"));
 

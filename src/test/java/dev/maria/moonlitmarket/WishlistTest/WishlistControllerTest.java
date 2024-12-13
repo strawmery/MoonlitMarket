@@ -1,19 +1,18 @@
 package dev.maria.moonlitmarket.WishlistTest;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.mockito.Mockito.doThrow;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
 import java.util.Arrays;
 import java.util.List;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.doThrow;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -33,7 +32,6 @@ class WishlistControllerTest {
 
     @Test
     void addToWishlist_ShouldReturnWishlistDTO_WhenSuccessfullyAdded() {
-        // Arrange
         Long userId = 1L;
         Long productId = 100L;
 
@@ -41,10 +39,8 @@ class WishlistControllerTest {
 
         when(wishlistService.addToWishlist(userId, productId)).thenReturn(wishlistDTO);
 
-        // Act
         ResponseEntity<WishlistDTO> response = wishlistController.addToWishlist(userId, productId);
 
-        // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -55,13 +51,11 @@ class WishlistControllerTest {
 
     @Test
     void addToWishlist_ShouldThrowException_WhenServiceFails() {
-        // Arrange
         Long userId = 1L;
         Long productId = 100L;
 
         when(wishlistService.addToWishlist(userId, productId)).thenThrow(new RuntimeException("Service exception"));
 
-        // Act & Assert
         RuntimeException exception = assertThrows(
                 RuntimeException.class,
                 () -> wishlistController.addToWishlist(userId, productId)
@@ -72,14 +66,11 @@ class WishlistControllerTest {
 
     @Test
     void removeFromWishlist_ShouldReturnOk_WhenSuccessfullyRemoved() {
-        // Arrange
         Long userId = 1L;
         Long productId = 100L;
 
-        // Act
         ResponseEntity<Void> response = wishlistController.removeFromWishlist(userId, productId);
 
-        // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         verify(wishlistService).removeFromWishlist(userId, productId);
@@ -87,14 +78,12 @@ class WishlistControllerTest {
 
     @Test
     void removeFromWishlist_ShouldThrowException_WhenServiceFails() {
-        // Arrange
         Long userId = 1L;
         Long productId = 100L;
 
         doThrow(new RuntimeException("Service exception"))
                 .when(wishlistService).removeFromWishlist(userId, productId);
 
-        // Act & Assert
         RuntimeException exception = assertThrows(
                 RuntimeException.class,
                 () -> wishlistController.removeFromWishlist(userId, productId)
@@ -105,7 +94,6 @@ class WishlistControllerTest {
 
     @Test
     void getWishlist_ShouldReturnWishlistList_WhenUserHasItems() {
-        // Arrange
         Long userId = 1L;
 
         WishlistDTO wishlist1 = new WishlistDTO(1L, userId, 100L);
@@ -114,10 +102,8 @@ class WishlistControllerTest {
 
         when(wishlistService.getWishlist(userId)).thenReturn(wishlist);
 
-        // Act
         ResponseEntity<List<WishlistDTO>> response = wishlistController.getWishlist(userId);
 
-        // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertNotNull(response.getBody());
@@ -128,12 +114,10 @@ class WishlistControllerTest {
 
     @Test
     void getWishlist_ShouldThrowException_WhenServiceFails() {
-        // Arrange
         Long userId = 1L;
 
         when(wishlistService.getWishlist(userId)).thenThrow(new RuntimeException("Service exception"));
 
-        // Act & Assert
         RuntimeException exception = assertThrows(
                 RuntimeException.class,
                 () -> wishlistController.getWishlist(userId)
@@ -142,4 +126,3 @@ class WishlistControllerTest {
         assertEquals("java.lang.RuntimeException: Service exception", exception.getMessage());
     }
 }
-

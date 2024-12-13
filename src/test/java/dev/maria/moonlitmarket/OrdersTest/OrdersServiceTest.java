@@ -38,59 +38,6 @@ public class OrdersServiceTest {
         MockitoAnnotations.openMocks(this);
     }
 
-    // @Test
-    // void testCreateOrder() {
-    //     // Preparar datos
-    //     Long userId = 1L;
-    //     User user = new User();
-    //     user.setId(userId);
-    //     user.setUsername("Test User");
-
-    //     Products product1 = new Products();
-    //     product1.setId(1L);
-    //     product1.setPrice(100.0);
-
-    //     Products product2 = new Products();
-    //     product2.setId(2L);
-    //     product2.setPrice(150.0);
-
-    //     Orders expectedOrder = new Orders();
-    //     expectedOrder.setUser(user);
-    //     expectedOrder.setProducts(Arrays.asList(product1, product2));
-    //     expectedOrder.setOrderDate(LocalDateTime.now());
-    //     expectedOrder.setStatus(Status.PENDING);
-
-    //     // Configurar mocks
-    //     when(userRepository.findById(userId)).thenReturn(Optional.of(user));
-    //     when(ordersRepository.save(any(Orders.class))).thenReturn(expectedOrder);
-
-    //     // Ejecutar método
-    //     Orders actualOrder = ordersService.createOrder(userId, Arrays.asList(product1, product2));
-
-    //     // Verificar resultados
-    //     assertNotNull(actualOrder);
-    //     assertEquals(user, actualOrder.getUser());
-    //     assertEquals(2, actualOrder.getProducts().size());
-    //     assertEquals(Status.PENDING, actualOrder.getStatus());
-    //     verify(userRepository, times(1)).findById(userId);
-    //     verify(ordersRepository, times(1)).save(any(Orders.class));
-    // }
-
-    // @Test
-    // void testCreateOrder_UserNotFound() {
-    //     Long userId = 1L;
-
-    //     when(userRepository.findById(userId)).thenReturn(Optional.empty());
-
-    //     Exception exception = assertThrows(RuntimeException.class, () -> {
-    //         ordersService.createOrder(userId, Arrays.asList(new Products()));
-    //     });
-
-    //     assertEquals("User not found with the id: " + userId, exception.getMessage());
-    //     verify(userRepository, times(1)).findById(userId);
-    //     verifyNoInteractions(ordersRepository);
-    // }
-
     @Test
     void testUpdateOrderStatus() {
         Long orderId = 1L;

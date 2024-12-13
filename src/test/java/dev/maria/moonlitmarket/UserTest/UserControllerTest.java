@@ -48,7 +48,6 @@ class UserControllerTest {
 
     @Test
     void listUsers_ShouldReturnListOfUsers_WhenAdminAuthorized() {
-        // Arrange
         UserDTO user1 = new UserDTO();
         user1.setId(1L);
         user1.setUsername("user1");
@@ -65,10 +64,8 @@ class UserControllerTest {
 
         when(userService.getUsers()).thenReturn(users);
 
-        // Act
         ResponseEntity<List<UserDTO>> response = userController.listUsers();
 
-        // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(2, response.getBody().size());
@@ -76,7 +73,6 @@ class UserControllerTest {
 
     @Test
     void updateUser_ShouldReturnUpdatedUser_WhenSuccessful() {
-        // Arrange
         Long userId = 1L;
         UserDTO userDTO = new UserDTO();
         userDTO.setId(userId);
@@ -86,10 +82,8 @@ class UserControllerTest {
         userDTO.setRole(Role.USER);
         when(userService.updateUser(userId, userDTO)).thenReturn(userDTO);
 
-        // Act
         ResponseEntity<UserDTO> response = userController.updateUser(userId, userDTO);
 
-        // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(userDTO, response.getBody());
@@ -97,7 +91,6 @@ class UserControllerTest {
 
     @Test
     void updateUser_ShouldReturnNotFound_WhenUserDoesNotExist() {
-        // Arrange
         Long userId = 1L;
         UserDTO userDTO = new UserDTO();
         userDTO.setId(userId);
@@ -107,24 +100,19 @@ class UserControllerTest {
         userDTO.setRole(Role.USER);
         when(userService.updateUser(userId, userDTO)).thenThrow(new RuntimeException("User not found"));
 
-        // Act
         ResponseEntity<UserDTO> response = userController.updateUser(userId, userDTO);
 
-        // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     @Test
     void deleteUser_ShouldReturnNoContent_WhenSuccessful() {
-        // Arrange
         Long userId = 1L;
         when(userService.getUserById(userId)).thenReturn(Optional.of(new UserDTO()));
 
-        // Act
         ResponseEntity<Void> response = userController.deleteUser(userId);
 
-        // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
         verify(userService).deleteUser(userId);
@@ -132,21 +120,17 @@ class UserControllerTest {
 
     @Test
     void deleteUser_ShouldReturnNotFound_WhenUserDoesNotExist() {
-        // Arrange
         Long userId = 1L;
         when(userService.getUserById(userId)).thenReturn(Optional.empty());
 
-        // Act
         ResponseEntity<Void> response = userController.deleteUser(userId);
 
-        // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }
 
     @Test
     void updatePassword_ShouldReturnUpdatedUser_WhenSuccessful() {
-        // Arrange
         Long userId = 1L;
         String newPassword = "newPassword123";
         UserDTO userDTO = new UserDTO();
@@ -158,10 +142,8 @@ class UserControllerTest {
 
         when(userService.updatePassword(userId, newPassword)).thenReturn(userDTO);
 
-        // Act
         ResponseEntity<UserDTO> response = userController.updatePassword(userId, newPassword);
 
-        // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.OK, response.getStatusCode());
         assertEquals(userDTO, response.getBody());
@@ -169,15 +151,12 @@ class UserControllerTest {
 
     @Test
     void updatePassword_ShouldReturnNotFound_WhenUserDoesNotExist() {
-        // Arrange
         Long userId = 1L;
         String newPassword = "newPassword123";
         when(userService.updatePassword(userId, newPassword)).thenThrow(new RuntimeException("User not found"));
 
-        // Act
         ResponseEntity<UserDTO> response = userController.updatePassword(userId, newPassword);
 
-        // Assert
         assertNotNull(response);
         assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
     }

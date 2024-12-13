@@ -40,7 +40,6 @@ public class UserController {
         return ResponseEntity.ok(users);
     }
 
-    //users
     @PutMapping("/user/update/{id}")
     public ResponseEntity<UserDTO> updateUser (@PathVariable Long id, @RequestBody UserDTO user) {
         try {
@@ -51,7 +50,6 @@ public class UserController {
         }
     }
 
-    //users
     @DeleteMapping("/user/delete/{id}")
     public ResponseEntity<Void> deleteUser(@PathVariable Long id) {
         if (userService.getUserById(id).isPresent()) {
@@ -62,7 +60,6 @@ public class UserController {
         }
     }
 
-    //users
     @PatchMapping("/user/password/{id}")
     public ResponseEntity<UserDTO> updatePassword(@PathVariable Long id, @RequestParam String password){
         try {
@@ -73,7 +70,6 @@ public class UserController {
         }
     }
 
-    //public 
     @PostMapping("/public/login")
     public ResponseEntity<String> login(@RequestParam String username, @RequestParam String password) {
         try {
