@@ -61,7 +61,7 @@ public class UserServiceTest {
         assertEquals(1L, result.getId());
         assertEquals("testUser", result.getUsername());
         assertEquals("test@example.com", result.getEmail());
-        assertEquals("USER", result.getRole());
+        assertEquals(Role.USER, result.getRole());
     }
 
     @Test
@@ -244,7 +244,7 @@ public class UserServiceTest {
         assertEquals(userId, result.getId());
         assertEquals("testUser", result.getUsername());
         assertEquals("test@example.com", result.getEmail());
-        assertEquals("USER", result.getRole());
+        assertEquals(Role.USER, result.getRole());
         verify(repository).save(existingUser);
     }
 
