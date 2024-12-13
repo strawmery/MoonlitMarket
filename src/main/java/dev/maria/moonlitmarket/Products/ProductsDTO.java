@@ -21,5 +21,5 @@ public class ProductsDTO {
 
     private String size;
 
-    private String categoryName;
+    private Long categoryId;
 }

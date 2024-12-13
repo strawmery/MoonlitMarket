@@ -42,7 +42,7 @@ public class ProductsController {
     @GetMapping("/public/products/listbyid/{id}")
     public ResponseEntity<Optional<ProductsDTO>> getProductById(@PathVariable Long id) {
         Optional<ProductsDTO> product = service.getProductById(id);
-        if (product != null) {
+        if (product.isPresent()) {
             return ResponseEntity.ok(product);
         } else {
             return ResponseEntity.notFound().build();
@@ -51,24 +51,24 @@ public class ProductsController {
 
     @PreAuthorize("hasAuthority('ADMIN')")
     @DeleteMapping("/admin/products/delete/{id}")
-    public ResponseEntity<Void> deleteProduct(@PathVariable Long id){
-        if(service.getProductById(id).isPresent()){
+    public ResponseEntity<Void> deleteProduct(@PathVariable Long id) {
+        if (service.getProductById(id).isPresent()) {
             service.deleteProducts(id);
             return ResponseEntity.noContent().build();
-        }else{
+        } else {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
-    
+
     @PreAuthorize("hasAuthority('ADMIN')")
     @PutMapping("/admin/products/update/{id}")
     public ResponseEntity<ProductsDTO> updateProduct(@PathVariable Long id, @RequestBody ProductsDTO details) {
         try {
             ProductsDTO updatedProducts = service.updateProduct(id, details);
             return ResponseEntity.ok(updatedProducts);
-            
         } catch (Exception e) {
             return ResponseEntity.status(HttpStatus.NOT_FOUND).build();
         }
     }
 }
+

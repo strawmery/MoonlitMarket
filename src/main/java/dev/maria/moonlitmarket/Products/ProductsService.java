@@ -17,11 +17,11 @@ public class ProductsService {
     private ProductsRepository repository;
 
     @Autowired
-    private CategoryService categoryService; 
+    private CategoryService categoryService;
 
-    // Admin
     public ProductsDTO addProducts(ProductsDTO productsDTO) {
-        Category category = categoryService.findByName(productsDTO.getCategoryName());
+        Category category = categoryService.findById(productsDTO.getCategoryId())
+                .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
 
         Products product = new Products();
         product.setName(productsDTO.getName());
@@ -35,7 +35,6 @@ public class ProductsService {
         return toDTO(savedProduct);
     }
 
-    // Admin
     public void deleteProducts(Long id) {
         if (repository.existsById(id)) {
             repository.deleteById(id);
@@ -44,7 +43,6 @@ public class ProductsService {
         }
     }
 
-    // Público
     public List<ProductsDTO> getAllProducts() {
         List<Products> products = repository.findAll();
         return products.stream()
@@ -52,22 +50,21 @@ public class ProductsService {
                 .collect(Collectors.toList());
     }
 
-    // Público
     public Optional<ProductsDTO> getProductById(long id) {
         return repository.findById(id).map(this::toDTO);
     }
-    
 
-    // Admin
     public ProductsDTO updateProduct(Long id, ProductsDTO productsDTO) {
-        Category category = categoryService.findByName(productsDTO.getCategoryName());
+        Category category = categoryService.findById(productsDTO.getCategoryId())
+                .orElseThrow(() -> new RuntimeException("Categoría no encontrada"));
+
         Products existingProduct = repository.findById(id).orElseThrow(() -> new RuntimeException("Producto no encontrado"));
 
         existingProduct.setName(productsDTO.getName());
         existingProduct.setDescription(productsDTO.getDescription());
         existingProduct.setPrice(productsDTO.getPrice());
         existingProduct.setSize(productsDTO.getSize());
-        existingProduct.setCategory(category); 
+        existingProduct.setCategory(category);
 
         Products updatedProduct = repository.save(existingProduct);
 
@@ -81,11 +78,12 @@ public class ProductsService {
         dto.setDescription(product.getDescription());
         dto.setPrice(product.getPrice());
         dto.setSize(product.getSize());
-        
-        if(product.getCategory() != null) {
-            dto.setCategoryName(product.getCategory().getName());
+
+        if (product.getCategory() != null) {
+            dto.setCategoryId(product.getCategory().getId());
         }
         return dto;
     }
 }
+
 
