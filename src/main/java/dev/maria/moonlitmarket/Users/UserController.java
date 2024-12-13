@@ -27,14 +27,12 @@ public class UserController {
     @Autowired
     private UserService userService;
 
-    //publico
     @PostMapping(path = "/public/register")
     public ResponseEntity<UserDTO> createUser(@RequestBody UserDTO userDTO) {
         UserDTO createdUser = userService.createUser(userDTO);
         return new ResponseEntity<>(createdUser, HttpStatus.CREATED);
     }
 
-    //admin
     @PreAuthorize("hasAuthority('ADMIN')")
     @GetMapping(path = "/admin/listusers")
     public ResponseEntity<List<UserDTO>> listUsers() {

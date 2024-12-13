@@ -23,6 +23,8 @@ public class UserService {
         user.setEmail(userDTO.getEmail());
         user.setPassword(encoder.encode(userDTO.getPassword()));
         user.setRole(Role.USER);
+        user.setAddress(userDTO.getAddress());
+        user.setPhoneNumber(userDTO.getPhoneNumber());
 
         User savedUser = repository.save(user);
         return toDTO(savedUser);
