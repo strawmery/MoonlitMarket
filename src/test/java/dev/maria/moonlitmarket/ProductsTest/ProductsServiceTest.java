@@ -1,22 +1,27 @@
 package dev.maria.moonlitmarket.ProductsTest;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertThrows;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
+import static org.junit.jupiter.api.Assertions.assertTrue;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.anyLong;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
 import org.mockito.MockitoAnnotations;
+import org.springframework.boot.test.context.SpringBootTest;
 
 import dev.maria.moonlitmarket.Category.Category;
 import dev.maria.moonlitmarket.Category.CategoryService;
@@ -25,6 +30,8 @@ import dev.maria.moonlitmarket.Products.ProductsDTO;
 import dev.maria.moonlitmarket.Products.ProductsRepository;
 import dev.maria.moonlitmarket.Products.ProductsService;
 
+
+@SpringBootTest
 public class ProductsServiceTest {
 
     @Mock
@@ -36,222 +43,133 @@ public class ProductsServiceTest {
     @InjectMocks
     private ProductsService service;
 
+    private ProductsDTO productDTO;
+    private Category category;
+    private Products product;
+
     @BeforeEach
-    void setUp() {
+    public void setUp() {
         MockitoAnnotations.openMocks(this);
+        
+        category = new Category(1L, "Electronics", new ArrayList<>());
+        productDTO = new ProductsDTO(1L, "Product Name", "Product Description", 100.0, "M", category.getId());
+        product = new Products(1L, "Product Name", "Product Description", 100.0, "M", category, null);
     }
 
     @Test
-    void testAddProducts() {
-        // Arrange
-        Category category = Category.builder()
-                .id(1L)
-                .name("Electronics")
-                .build();
+    public void addProduct_ValidProduct_ReturnsProductDTO() {
+        when(categoryService.findById(anyLong())).thenReturn(Optional.of(category));
+        when(repository.save(any(Products.class))).thenReturn(product);
 
-        ProductsDTO productsDTO = new ProductsDTO();
-        productsDTO.setName("Smartphone");
-        productsDTO.setDescription("Latest model smartphone");
-        productsDTO.setPrice(999.99);
-        productsDTO.setSize("Medium");
-        productsDTO.setCategoryName("Electronics");
+        ProductsDTO result = service.addProducts(productDTO);
 
-        Products productToAdd = Products.builder()
-                .name("Smartphone")
-                .description("Latest model smartphone")
-                .price(999.99)
-                .size("Medium")
-                .category(category)
-                .build();
-
-        Products savedProduct = Products.builder()
-                .id(1L)
-                .name("Smartphone")
-                .description("Latest model smartphone")
-                .price(999.99)
-                .size("Medium")
-                .category(category)
-                .build();
-
-        when(categoryService.findByName("Electronics")).thenReturn(category);
-        when(repository.save(productToAdd)).thenReturn(savedProduct);
-
-        // Act
-        ProductsDTO result = service.addProducts(productsDTO);
-
-        // Assert
-        verify(repository).save(productToAdd);
         assertNotNull(result);
-        assertEquals(1L, result.getId());
-        assertEquals("Smartphone", result.getName());
-        assertEquals("Latest model smartphone", result.getDescription());
-        assertEquals(999.99, result.getPrice(), 0.001);
-        assertEquals("Medium", result.getSize());
-        assertEquals("Electronics", result.getCategoryName());
+        assertEquals(productDTO.getName(), result.getName());
+        assertEquals(productDTO.getDescription(), result.getDescription());
+        assertEquals(productDTO.getPrice(), result.getPrice());
+        assertEquals(productDTO.getSize(), result.getSize());
+        assertEquals(productDTO.getCategoryId(), result.getCategoryId());
     }
 
     @Test
-    void deleteProductsTest() {
-        Long productId = 1L;
-        when(repository.existsById(productId)).thenReturn(true);
+    public void addProduct_CategoryNotFound_ThrowsException() {
+        when(categoryService.findById(anyLong())).thenReturn(Optional.empty());
 
-        // Act
-        service.deleteProducts(productId);
-
-        // Assert
-        verify(repository).existsById(productId);
-        verify(repository).deleteById(productId);
-    }
-
-    @Test
-    void testDeleteProducts_WhenProductDoesNotExist() {
-        // Arrange
-        Long productId = 1L;
-        when(repository.existsById(productId)).thenReturn(false);
-
-        // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            service.deleteProducts(productId);
+        RuntimeException thrown = assertThrows(RuntimeException.class, () -> {
+            service.addProducts(productDTO);
         });
-        assertEquals("Producto no encontrado", exception.getMessage());
 
-        verify(repository).existsById(productId);
-        verify(repository, never()).deleteById(productId);
+        assertEquals("Categoría no encontrada", thrown.getMessage());
     }
 
     @Test
-    void getAllProductsTest() {
-        List<Products> productList = List.of(
-            Products.builder()
-                    .id(1L)
-                    .name("Smartphone")
-                    .description("Latest model smartphone")
-                    .price(999.99)
-                    .size("Medium")
-                    .category(Category.builder().id(1L).name("Electronics").build())
-                    .build(),
-            Products.builder()
-                    .id(2L)
-                    .name("Laptop")
-                    .description("High-performance laptop")
-                    .price(1299.99)
-                    .size("Large")
-                    .category(Category.builder().id(1L).name("Electronics").build())
-                    .build()
-        );
+    public void deleteProduct_ProductExists_DeletesProduct() {
+        when(repository.existsById(anyLong())).thenReturn(true);
+        doNothing().when(repository).deleteById(anyLong());
 
-        when(repository.findAll()).thenReturn(productList);
+        service.deleteProducts(1L);
 
-        // Act
+        verify(repository, times(1)).deleteById(1L);
+    }
+
+    @Test
+    public void deleteProduct_ProductNotFound_ThrowsException() {
+        when(repository.existsById(anyLong())).thenReturn(false);
+
+        RuntimeException thrown = assertThrows(RuntimeException.class, () -> {
+            service.deleteProducts(1L);
+        });
+
+        assertEquals("Producto no encontrado", thrown.getMessage());
+    }
+
+    @Test
+    public void getAllProducts_ReturnsProductList() {
+        when(repository.findAll()).thenReturn(Collections.singletonList(product));
+
         List<ProductsDTO> result = service.getAllProducts();
-    
-        // Assert
+
         assertNotNull(result);
-        assertEquals(2, result.size());
-        verify(repository).findAll();
+        assertEquals(1, result.size());
+        assertEquals(productDTO.getName(), result.get(0).getName());
     }
 
     @Test
-    void testGetProductById() {
-            // Arrange
-            Long productId = 1L;
-            ProductsDTO productDTO = new ProductsDTO();
-            productDTO.setId(productId);
-            productDTO.setName("Smartphone");
-            productDTO.setDescription("Latest model smartphone");
-            productDTO.setPrice(999.99);
-            productDTO.setSize("Medium");
-            productDTO.setCategoryName("Electronics");
+    public void getProductById_ValidId_ReturnsProductDTO() {
+        when(repository.findById(anyLong())).thenReturn(Optional.of(product));
 
-            Products product = Products.builder()
-                    .id(productId)
-                    .name("Smartphone")
-                    .description("Latest model smartphone")
-                    .price(999.99)
-                    .size("Medium")
-                    .category(Category.builder().id(1L).name("Electronics").build())
-                    .build();
+        Optional<ProductsDTO> result = service.getProductById(1L);
 
-            when(repository.findById(productId)).thenReturn(Optional.of(product));
-
-            // Act
-            Optional<ProductsDTO> result = service.getProductById(productId);
-
-            // Assert
-            assertTrue(result.isPresent());
-            assertEquals(productDTO, result.get());
-            verify(repository).findById(productId);
+        assertTrue(result.isPresent());
+        assertEquals(productDTO.getName(), result.get().getName());
     }
 
     @Test
-    void testUpdateProduct() {
-        // Arrange
-        Long productId = 1L;
-    
-        Products existingProduct = Products.builder()
-                .id(productId)
-                .name("Smartphone")
-                .description("Old model smartphone")
-                .price(799.99)
-                .size("Medium")
-                .category(Category.builder().id(1L).name("Electronics").build())
-                .build();
-    
-        ProductsDTO updatedDetails = new ProductsDTO();
-        updatedDetails.setName("Smartphone");
-        updatedDetails.setDescription("Latest model smartphone");
-        updatedDetails.setPrice(999.99);
-        updatedDetails.setSize("Large");
-        updatedDetails.setCategoryName("Gadgets");
+    public void getProductById_ProductNotFound_ReturnsEmpty() {
+        when(repository.findById(anyLong())).thenReturn(Optional.empty());
 
-        Products updatedProduct = Products.builder()
-                .id(productId)
-                .name("Smartphone")
-                .description("Latest model smartphone")
-                .price(999.99)
-                .size("Large")
-                .category(Category.builder().id(2L).name("Gadgets").build())
-                .build();
+        Optional<ProductsDTO> result = service.getProductById(1L);
 
-        when(repository.findById(productId)).thenReturn(Optional.of(existingProduct));
-        when(categoryService.findByName("Gadgets")).thenReturn(updatedProduct.getCategory());
-        when(repository.save(existingProduct)).thenReturn(updatedProduct);
-
-        // Act
-        ProductsDTO result = service.updateProduct(productId, updatedDetails);
-    
-        // Assert
-        assertNotNull(result);
-        assertEquals("Latest model smartphone", result.getDescription());
-        assertEquals(999.99, result.getPrice(), 0.001);
-        assertEquals("Large", result.getSize());
-        assertEquals("Gadgets", result.getCategoryName());
-        verify(repository).findById(productId);
-        verify(repository).save(existingProduct);
+        assertFalse(result.isPresent());
     }
 
     @Test
-    void testUpdateProductNotExist() {
-        // Arrange
-        Long productId = 1L;
+    public void updateProduct_ValidProduct_ReturnsUpdatedProductDTO() {
+        when(categoryService.findById(anyLong())).thenReturn(Optional.of(category));
+        when(repository.findById(anyLong())).thenReturn(Optional.of(product));
+        when(repository.save(any(Products.class))).thenReturn(product);
 
-        ProductsDTO updatedDetails = new ProductsDTO();
-        updatedDetails.setName("Smartphone");
-        updatedDetails.setDescription("Latest model smartphone");
-        updatedDetails.setPrice(999.99);
-        updatedDetails.setSize("Large");
-        updatedDetails.setCategoryName("Gadgets");
+        ProductsDTO updatedProduct = service.updateProduct(1L, productDTO);
 
-        when(repository.findById(productId)).thenReturn(Optional.empty());
+        assertNotNull(updatedProduct);
+        assertEquals(productDTO.getName(), updatedProduct.getName());
+        assertEquals(productDTO.getDescription(), updatedProduct.getDescription());
+        assertEquals(productDTO.getPrice(), updatedProduct.getPrice());
+        assertEquals(productDTO.getSize(), updatedProduct.getSize());
+    }
 
-        // Act & Assert
-        RuntimeException exception = assertThrows(RuntimeException.class, () -> {
-            service.updateProduct(productId, updatedDetails);
+    @Test
+    public void updateProduct_CategoryNotFound_ThrowsException() {
+        when(categoryService.findById(anyLong())).thenReturn(Optional.empty());
+
+        RuntimeException thrown = assertThrows(RuntimeException.class, () -> {
+            service.updateProduct(1L, productDTO);
         });
 
-        assertEquals("Producto no encontrado", exception.getMessage());
-        verify(repository).findById(productId);
-        verify(repository, never()).save(any());
+        assertEquals("Categoría no encontrada", thrown.getMessage());
+    }
+
+    @Test
+    public void updateProduct_ProductNotFound_ThrowsException() {
+        when(categoryService.findById(anyLong())).thenReturn(Optional.of(category));
+        when(repository.findById(anyLong())).thenReturn(Optional.empty());
+
+        RuntimeException thrown = assertThrows(RuntimeException.class, () -> {
+            service.updateProduct(1L, productDTO);
+        });
+
+        assertEquals("Producto no encontrado", thrown.getMessage());
     }
 }
+
 
