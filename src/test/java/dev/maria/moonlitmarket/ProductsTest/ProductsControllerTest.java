@@ -1,187 +1,137 @@
 package dev.maria.moonlitmarket.ProductsTest;
 
-import static org.junit.jupiter.api.Assertions.assertEquals;
-import static org.junit.jupiter.api.Assertions.assertNotNull;
-import static org.junit.jupiter.api.Assertions.assertTrue;
-import static org.mockito.ArgumentMatchers.any;
-import static org.mockito.ArgumentMatchers.anyLong;
-import static org.mockito.ArgumentMatchers.eq;
-import static org.mockito.Mockito.doNothing;
-import static org.mockito.Mockito.never;
-import static org.mockito.Mockito.verify;
-import static org.mockito.Mockito.when;
-
+import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
 
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
-import org.junit.jupiter.api.extension.ExtendWith;
-import org.mockito.InjectMocks;
-import org.mockito.Mock;
-import org.mockito.junit.jupiter.MockitoExtension;
-import org.springframework.http.HttpStatus;
-import org.springframework.http.ResponseEntity;
+import static org.mockito.ArgumentMatchers.any;
+import static org.mockito.ArgumentMatchers.eq;
+import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.verify;
+import static org.mockito.Mockito.when;
+import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.boot.test.autoconfigure.web.servlet.AutoConfigureMockMvc;
+import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
+import org.springframework.boot.test.mock.mockito.MockBean;
+import org.springframework.http.MediaType;
 import org.springframework.security.test.context.support.WithMockUser;
+import org.springframework.test.web.servlet.MockMvc;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.delete;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.get;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.post;
+import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.put;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.jsonPath;
+import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.status;
 
-import dev.maria.moonlitmarket.Category.Category;
-import dev.maria.moonlitmarket.Products.Products;
+import com.fasterxml.jackson.databind.ObjectMapper;
+
 import dev.maria.moonlitmarket.Products.ProductsController;
 import dev.maria.moonlitmarket.Products.ProductsDTO;
 import dev.maria.moonlitmarket.Products.ProductsService;
 
-@ExtendWith(MockitoExtension.class)
+@WebMvcTest(ProductsController.class)
+@AutoConfigureMockMvc(addFilters = false)
 public class ProductsControllerTest {
 
-    @InjectMocks
-    private ProductsController controller;
+    @Autowired
+    private MockMvc mockMvc;
 
-    @Mock
-    private ProductsService service;
+    @MockBean
+    private ProductsService productsService;
 
-    private ProductsDTO sampleProductDTO;
-    private Category sampleCategory;
+    private ProductsDTO productDTO;
 
     @BeforeEach
-    void setUp() {
-        sampleCategory = Category.builder()
-                .id(1L)
-                .name("Electronics")
-                .build();
-
-        sampleProductDTO = ProductsDTO.builder()
-                .id(1L)
-                .name("Smartphone")
-                .description("Latest model smartphone")
-                .price(999.99)
-                .size("Medium")
-                .categoryName(sampleCategory.getName())  // Usamos el nombre de la categoría en el DTO
-                .build();
+    public void setUp() {
+        productDTO = new ProductsDTO(1L, "Product Name", "Product Description", 100.0, "M", 1L);
     }
 
     @Test
-    @WithMockUser(authorities = "ADMIN")
-    void testAddProduct() {
-        // Arrange
-        when(service.addProducts(any(ProductsDTO.class))).thenReturn(sampleProductDTO);
+    @WithMockUser(roles = "ADMIN")
+    public void addProduct_ValidProduct_ReturnsCreated() throws Exception {
+        when(productsService.addProducts(any(ProductsDTO.class))).thenReturn(productDTO);
 
-        // Act
-        ResponseEntity<ProductsDTO> response = controller.addProduct(sampleProductDTO);
-
-        // Assert
-        assertEquals(HttpStatus.CREATED, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(sampleProductDTO.getId(), response.getBody().getId());
-        verify(service).addProducts(any(ProductsDTO.class));
+        mockMvc.perform(post("/api/admin/addproduct")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(productDTO)))
+                .andExpect(status().isCreated())
+                .andExpect(jsonPath("$.name").value(productDTO.getName()))
+                .andExpect(jsonPath("$.description").value(productDTO.getDescription()))
+                .andExpect(jsonPath("$.price").value(productDTO.getPrice()));
     }
 
     @Test
-    void testListProducts() {
-        // Arrange
-        List<ProductsDTO> productsList = List.of(sampleProductDTO);
-        when(service.getAllProducts()).thenReturn(productsList);
-    
-        // Act
-        ResponseEntity<List<ProductsDTO>> response = controller.listProducts();
-    
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals(1, response.getBody().size());
-        verify(service).getAllProducts();
+    public void listProducts_ReturnsProductList() throws Exception {
+        List<ProductsDTO> productsList = Collections.singletonList(productDTO);
+        when(productsService.getAllProducts()).thenReturn(productsList);
+
+        mockMvc.perform(get("/api/public/products/list"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.size()").value(1))
+                .andExpect(jsonPath("$[0].name").value(productDTO.getName()));
     }
 
     @Test
-    void testGetProductById() {
-        // Arrange
-        when(service.getProductById(1L)).thenReturn(Optional.of(sampleProductDTO));
+    public void getProductById_ValidId_ReturnsProduct() throws Exception {
+        when(productsService.getProductById(1L)).thenReturn(Optional.of(productDTO));
 
-        // Act
-        ResponseEntity<Optional<ProductsDTO>> response = controller.getProductById(1L);
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertTrue(response.getBody().isPresent());
-        assertEquals(sampleProductDTO.getId(), response.getBody().get().getId());
-        verify(service).getProductById(1L);
+        mockMvc.perform(get("/api/public/products/listbyid/1"))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value(productDTO.getName()));
     }
 
     @Test
-    @WithMockUser(authorities = "ADMIN")
-    void testDeleteProduct() {
-        // Arrange
-        when(service.getProductById(1L)).thenReturn(Optional.of(sampleProductDTO));
-        doNothing().when(service).deleteProducts(1L);
+    public void getProductById_ProductNotFound_ReturnsNotFound() throws Exception {
+        when(productsService.getProductById(1L)).thenReturn(Optional.empty());
 
-        // Act
-        ResponseEntity<Void> response = controller.deleteProduct(1L);
-
-        // Assert
-        assertEquals(HttpStatus.NO_CONTENT, response.getStatusCode());
-        verify(service).getProductById(1L);
-        verify(service).deleteProducts(1L);
+        mockMvc.perform(get("/api/public/products/listbyid/1"))
+                .andExpect(status().isNotFound());
     }
 
     @Test
-    @WithMockUser(authorities = "ADMIN")
-    void testDeleteProductDoesNotExist() {
-        // Arrange
-        when(service.getProductById(1L)).thenReturn(Optional.empty());
+    @WithMockUser(roles = "ADMIN")
+    public void deleteProduct_ValidId_ReturnsNoContent() throws Exception {
+        when(productsService.getProductById(1L)).thenReturn(Optional.of(productDTO));
 
-        // Act
-        ResponseEntity<Void> response = controller.deleteProduct(1L);
+        mockMvc.perform(delete("/api/admin/products/delete/1"))
+                .andExpect(status().isNoContent());
 
-        // Assert
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(service).getProductById(1L);
-        verify(service, never()).deleteProducts(anyLong());
+        verify(productsService, times(1)).deleteProducts(1L);
     }
 
     @Test
-    @WithMockUser(authorities = "ADMIN")
-    void testUpdateProduct() {
-        // Arrange
-        ProductsDTO updatedDetails = ProductsDTO.builder()
-                .name("Updated Smartphone")
-                .description("Updated description")
-                .price(1099.99)
-                .size("Large")
-                .categoryName(sampleCategory.getName())  // Usamos el nombre de la categoría en el DTO
-                .build();
+    @WithMockUser(roles = "ADMIN")
+    public void deleteProduct_ProductNotFound_ReturnsNotFound() throws Exception {
+        when(productsService.getProductById(1L)).thenReturn(Optional.empty());
 
-        when(service.updateProduct(eq(1L), any(ProductsDTO.class))).thenReturn(updatedDetails);
-
-        // Act
-        ResponseEntity<ProductsDTO> response = controller.updateProduct(1L, updatedDetails);
-
-        // Assert
-        assertEquals(HttpStatus.OK, response.getStatusCode());
-        assertNotNull(response.getBody());
-        assertEquals("Updated Smartphone", response.getBody().getName());
-        verify(service).updateProduct(eq(1L), any(ProductsDTO.class));
+        mockMvc.perform(delete("/api/admin/products/delete/1"))
+                .andExpect(status().isNotFound());
     }
 
     @Test
-    @WithMockUser(authorities = "ADMIN")
-    void testUpdateProductDoesNotExist() {
-        // Arrange
-        ProductsDTO updatedDetails = ProductsDTO.builder()
-                .name("Updated Smartphone")
-                .description("Updated description")
-                .price(1099.99)
-                .size("Large")
-                .categoryName(sampleCategory.getName())  // Usamos el nombre de la categoría en el DTO
-                .build();
+    @WithMockUser(roles = "ADMIN")
+    public void updateProduct_ValidProduct_ReturnsUpdatedProduct() throws Exception {
+        when(productsService.updateProduct(eq(1L), any(ProductsDTO.class))).thenReturn(productDTO);
 
-        when(service.updateProduct(eq(1L), any(ProductsDTO.class))).thenThrow(new RuntimeException("Producto no encontrado"));
+        mockMvc.perform(put("/api/admin/products/update/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(productDTO)))
+                .andExpect(status().isOk())
+                .andExpect(jsonPath("$.name").value(productDTO.getName()));
+    }
 
-        // Act
-        ResponseEntity<ProductsDTO> response = controller.updateProduct(1L, updatedDetails);
+    @Test
+    @WithMockUser(roles = "ADMIN")
+    public void updateProduct_ProductNotFound_ReturnsNotFound() throws Exception {
+        when(productsService.updateProduct(eq(1L), any(ProductsDTO.class))).thenThrow(new RuntimeException("Producto no encontrado"));
 
-        // Assert
-        assertEquals(HttpStatus.NOT_FOUND, response.getStatusCode());
-        verify(service).updateProduct(eq(1L), any(ProductsDTO.class));
+        mockMvc.perform(put("/api/admin/products/update/1")
+                .contentType(MediaType.APPLICATION_JSON)
+                .content(new ObjectMapper().writeValueAsString(productDTO)))
+                .andExpect(status().isNotFound());
     }
 }
+
 
