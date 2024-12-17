@@ -32,7 +32,7 @@ public class InvoiceController {
         }
     }
 
-    @GetMapping("/download")
+    @GetMapping("public/download")
     public ResponseEntity<byte[]> downloadInvoice(@RequestParam Long orderId) {
         try {
             byte[] pdf = invoiceService.dowloadInvoice(orderId);
