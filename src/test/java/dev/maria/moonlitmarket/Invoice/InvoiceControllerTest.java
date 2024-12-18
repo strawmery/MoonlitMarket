@@ -66,7 +66,7 @@ class InvoiceControllerTest {
 
         Mockito.when(invoiceService.dowloadInvoice(orderId)).thenReturn(mockPdf);
 
-        mockMvc.perform(get("/api/download").param("orderId", String.valueOf(orderId)))
+        mockMvc.perform(get("/api/public/download").param("orderId", String.valueOf(orderId)))
                 .andExpect(status().isOk())
                 .andExpect(header().string("Content-Disposition", "attachment; filename=invoice_1001.pdf"))
                 .andExpect(content().contentType(MediaType.APPLICATION_PDF))
@@ -79,7 +79,7 @@ class InvoiceControllerTest {
 
         Mockito.when(invoiceService.dowloadInvoice(orderId)).thenThrow(new RuntimeException("Error generating invoice"));
 
-        mockMvc.perform(get("/api/download").param("orderId", String.valueOf(orderId)))
+        mockMvc.perform(get("/api/public/download").param("orderId", String.valueOf(orderId)))
                 .andExpect(status().isInternalServerError());
     }
 }

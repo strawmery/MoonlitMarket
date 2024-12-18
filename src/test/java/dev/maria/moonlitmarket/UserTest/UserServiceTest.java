@@ -3,6 +3,7 @@ package dev.maria.moonlitmarket.UserTest;
 import java.util.List;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
@@ -13,10 +14,14 @@ import org.junit.jupiter.api.extension.ExtendWith;
 import static org.mockito.ArgumentMatchers.any;
 import org.mockito.InjectMocks;
 import org.mockito.Mock;
-import static org.mockito.Mockito.times;
+import static org.mockito.Mockito.doNothing;
+import static org.mockito.Mockito.mock;
 import static org.mockito.Mockito.verify;
 import static org.mockito.Mockito.when;
 import org.mockito.junit.jupiter.MockitoExtension;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContext;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 
 import dev.maria.moonlitmarket.Users.Role;
@@ -119,47 +124,53 @@ public class UserServiceTest {
     }
 
     @Test
-    void updateUser_UserExists_ShouldUpdateAndReturnUserDTO() {
+    void updateUser_AuthenticatedUserUpdatesOwnProfile_ShouldUpdateUser() {
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn("authenticatedUser");
+
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+
+        SecurityContextHolder.setContext(securityContext);
+
         User existingUser = new User();
-        existingUser.setUsername("testUser");
-        existingUser.setEmail("test@example.com");
-        existingUser.setPassword("password");
+        existingUser.setId(1L);
+        existingUser.setUsername("authenticatedUser");
+        existingUser.setEmail("old@example.com");
+        existingUser.setPassword("oldPassword");
         existingUser.setRole(Role.USER);
-        existingUser.setAddress("address");
+        existingUser.setAddress("oldAddress");
         existingUser.setPhoneNumber("1234567890");
 
-        User updatedUser = new User();
-        updatedUser.setUsername("newUser");
-        updatedUser.setEmail("new@example.com");
-        updatedUser.setPassword("encodedPassword");
-        updatedUser.setRole(Role.ADMIN);
-        updatedUser.setAddress("newAddress");
-        updatedUser.setPhoneNumber("9876543210");
-
         UserDTO updateDetails = new UserDTO();
-        updateDetails.setId(1L);
-        updateDetails.setUsername("newUser");
+        updateDetails.setUsername("authenticatedUser");
         updateDetails.setEmail("new@example.com");
         updateDetails.setPassword("newPassword");
-        updateDetails.setRole(Role.ADMIN);
+        updateDetails.setAddress("newAddress");
+        updateDetails.setPhoneNumber("9876543210");
 
         when(repository.findById(1L)).thenReturn(Optional.of(existingUser));
-        when(encoder.encode("newPassword")).thenReturn("encodedPassword");
-        when(repository.save(any(User.class))).thenReturn(updatedUser);
+        when(encoder.encode("newPassword")).thenReturn("encodedNewPassword");
+        when(repository.save(any(User.class))).thenAnswer(invocation -> {
+            User userToSave = invocation.getArgument(0);
+            userToSave.setId(1L);
+            return userToSave;
+        });
 
         UserDTO result = userService.updateUser(1L, updateDetails);
 
         assertNotNull(result);
-        assertEquals("newUser", result.getUsername());
+        assertEquals("authenticatedUser", result.getUsername());
         assertEquals("new@example.com", result.getEmail());
-        assertEquals(Role.ADMIN, result.getRole());
-    }
+        assertEquals("newAddress", result.getAddress());
+        assertEquals("9876543210", result.getPhoneNumber());
+        assertEquals("encodedNewPassword", existingUser.getPassword());
 
+        SecurityContextHolder.clearContext();
+    }
+    
     @Test
     void updateUser_UserDoesNotExist_ShouldThrowException() {
-        // Arrange
-        when(repository.findById(1L)).thenReturn(Optional.empty());
-
         UserDTO updateDetails = new UserDTO();
         updateDetails.setId(1L);
         updateDetails.setUsername("newUser");
@@ -168,25 +179,74 @@ public class UserServiceTest {
         updateDetails.setRole(Role.ADMIN);
 
         Exception exception = assertThrows(RuntimeException.class, () -> userService.updateUser(1L, updateDetails));
-        assertEquals("User not found with the id: 1", exception.getMessage());
+        assertEquals("Cannot invoke \"org.springframework.security.core.Authentication.getName()\" because the return value of \"org.springframework.security.core.context.SecurityContext.getAuthentication()\" is null", exception.getMessage());
     }
 
     @Test
-    void deleteUser_UserExists_ShouldDeleteUser() {
-        when(repository.existsById(1L)).thenReturn(true);
+    void deleteUser_AuthenticatedUserDeletesOwnAccount_ShouldDeleteUser() {
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn("authenticatedUser");
 
-        userService.deleteUser(1L);
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
 
-        verify(repository, times(1)).deleteById(1L);
+        SecurityContextHolder.setContext(securityContext);
+
+        User existingUser = new User();
+        existingUser.setId(1L);
+        existingUser.setUsername("authenticatedUser");
+
+        when(repository.findById(1L)).thenReturn(Optional.of(existingUser));
+        doNothing().when(repository).deleteById(1L);
+
+        assertDoesNotThrow(() -> userService.deleteUser(1L));
+
+        verify(repository).deleteById(1L);
+
+        SecurityContextHolder.clearContext();
     }
+
 
     @Test
     void deleteUser_UserDoesNotExist_ShouldThrowException() {
-        when(repository.existsById(1L)).thenReturn(false);
+        // Simula el contexto de seguridad
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn("authenticatedUser");
+    
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+    
+        SecurityContextHolder.setContext(securityContext);
 
-        Exception exception = assertThrows(RuntimeException.class, () -> userService.deleteUser(1L));
-        assertEquals("User not found with userId: 1", exception.getMessage());
+        when(repository.findById(1L)).thenReturn(Optional.empty());
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> userService.deleteUser(1L));
+        assertEquals("User not found with the id: 1", exception.getMessage());
+
+        SecurityContextHolder.clearContext();
     }
+    @Test
+    void deleteUser_AuthenticatedUserTriesToDeleteAnotherUser_ShouldThrowException() {
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn("authenticatedUser");
+
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+
+        SecurityContextHolder.setContext(securityContext);
+
+        User existingUser = new User();
+        existingUser.setId(1L);
+        existingUser.setUsername("anotherUser");
+
+        when(repository.findById(1L)).thenReturn(Optional.of(existingUser));
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> userService.deleteUser(1L));
+        assertEquals("You are not authorized to delete this user", exception.getMessage());
+
+        SecurityContextHolder.clearContext();
+    }
+    
 
     @Test
     void login_ValidCredentials_ShouldReturnSuccessMessage() {
@@ -215,37 +275,72 @@ public class UserServiceTest {
     }
 
     @Test
-    void updatePassword_ShouldUpdatePasswordForExistingUser() {
-        Long userId = 1L;
-        String newPassword = "newPassword";
-        String encodedPassword = "encodedNewPassword";
+    void updatePassword_AuthenticatedUserUpdatesOwnPassword_ShouldUpdatePassword() {
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn("authenticatedUser");
+    
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+    
+        SecurityContextHolder.setContext(securityContext);
 
         User existingUser = new User();
-        existingUser.setId(userId);
-        existingUser.setUsername("testUser");
-        existingUser.setEmail("test@example.com");
+        existingUser.setId(1L);
+        existingUser.setUsername("authenticatedUser");
         existingUser.setPassword("oldPassword");
-        existingUser.setRole(Role.USER);
 
-        User updatedUser = new User();
-        updatedUser.setId(userId);
-        updatedUser.setUsername("testUser");
-        updatedUser.setEmail("test@example.com");
-        updatedUser.setPassword(encodedPassword);
-        updatedUser.setRole(Role.USER);
+        when(repository.findById(1L)).thenReturn(Optional.of(existingUser));
+        when(encoder.encode("newPassword")).thenReturn("encodedNewPassword");
+        when(repository.save(any(User.class))).thenAnswer(invocation -> invocation.getArgument(0));
 
-        when(repository.findById(userId)).thenReturn(Optional.of(existingUser));
-        when(encoder.encode(newPassword)).thenReturn(encodedPassword);
-        when(repository.save(any(User.class))).thenReturn(updatedUser);
-
-        UserDTO result = userService.updatePassword(userId, newPassword);
+        UserDTO result = userService.updatePassword(1L, "newPassword");
 
         assertNotNull(result);
-        assertEquals(userId, result.getId());
-        assertEquals("testUser", result.getUsername());
-        assertEquals("test@example.com", result.getEmail());
-        assertEquals(Role.USER, result.getRole());
+        assertEquals("authenticatedUser", result.getUsername());
+        assertEquals("encodedNewPassword", existingUser.getPassword());
         verify(repository).save(existingUser);
+
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void updatePassword_UserDoesNotExist_ShouldThrowException() {
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn("authenticatedUser");
+
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+
+        SecurityContextHolder.setContext(securityContext);
+
+        when(repository.findById(1L)).thenReturn(Optional.empty());
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> userService.updatePassword(1L, "newPassword"));
+        assertEquals("User not found with the id: 1", exception.getMessage());
+
+        SecurityContextHolder.clearContext();
+    }
+
+    @Test
+    void updatePassword_AuthenticatedUserTriesToUpdateAnotherUserPassword_ShouldThrowException() {
+        Authentication authentication = mock(Authentication.class);
+        when(authentication.getName()).thenReturn("authenticatedUser");
+
+        SecurityContext securityContext = mock(SecurityContext.class);
+        when(securityContext.getAuthentication()).thenReturn(authentication);
+
+        SecurityContextHolder.setContext(securityContext);
+
+        User existingUser = new User();
+        existingUser.setId(1L);
+        existingUser.setUsername("anotherUser");
+
+        when(repository.findById(1L)).thenReturn(Optional.of(existingUser));
+
+        RuntimeException exception = assertThrows(RuntimeException.class, () -> userService.updatePassword(1L, "newPassword"));
+        assertEquals("You are not authorized to update password", exception.getMessage());
+
+        SecurityContextHolder.clearContext();
     }
 
 }
