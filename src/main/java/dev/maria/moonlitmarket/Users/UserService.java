@@ -5,6 +5,7 @@ import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 
@@ -41,22 +42,35 @@ public class UserService {
     }
 
     public UserDTO updateUser(Long id, UserDTO details) {
-        User user = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with the id: " + id));
+        String authenticatedUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User user = repository.findById(id).orElseThrow(()-> new RuntimeException("user not found with the id: " + id));
+
+        if(!details.getUsername().equals(authenticatedUsername)){
+            throw new RuntimeException("You are not authorized to update this user");
+        }
 
         user.setUsername(details.getUsername());
+        user.setEmail(details.getEmail());
+        user.setAddress(details.getAddress());
+        user.setPhoneNumber(details.getPhoneNumber());
+
         if (details.getPassword() != null && !details.getPassword().isEmpty()) {
             user.setPassword(encoder.encode(details.getPassword()));
         }
-        user.setEmail(details.getEmail());
 
         User updatedUser = repository.save(user);
         return toDTO(updatedUser);
     }
 
     public UserDTO updatePassword(Long id, String password) {
-        User user = repository.findById(id)
-                .orElseThrow(() -> new RuntimeException("User not found with the id: " + id));
+        String authenticatedUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User user = repository.findById(id).orElseThrow(() -> new RuntimeException("User not found with the id: " + id));
+
+        if(!user.getUsername().equals(authenticatedUsername)){
+            throw new RuntimeException("You are not authorized to update password");
+        }
 
         user.setPassword(encoder.encode(password));
         User updatedUser = repository.save(user);
@@ -64,9 +78,14 @@ public class UserService {
     }
 
     public void deleteUser(Long id) {
-        if (!repository.existsById(id)) {
-            throw new RuntimeException("User not found with userId: " + id);
+        String authenticatedUsername = SecurityContextHolder.getContext().getAuthentication().getName();
+
+        User user = repository.findById(id).orElseThrow(() -> new RuntimeException("User not found with the id: " + id));
+
+        if(!user.getUsername().equals(authenticatedUsername)){
+            throw new RuntimeException("You are not authorized to delete this user");
         }
+
         repository.deleteById(id);
     }
 
